@@ -1,0 +1,123 @@
+syntax="proto3";  
+// Domain
+enum Domain
+{
+   APP                = 0;       // When DPS is used to protect an application
+   SYS                = 1;       // When DPS is used to protect a system
+   NET                = 2;       // When DPS is used to protect a network product, e.g. Gateway...
+}
+// Function code
+enum Code
+{
+   // Message that it self-motivated by device
+   INF                = 0;     // Device information
+   ATS                = 1;     // Attestation
+   MES                = 2;     // Mesurement
+   UPT                = 3;     // update policy notification
+   ACC                = 4;     // Access control
+}
+//heart-beat info, also report status
+message InfData
+{
+   string version     = 1;    // dps version, include os, as "linux:dps:1.0", or "alios_things:das:1.0"
+   string device      = 2;    // hardware fingerprint, as "key:value, key:value"
+   string state       = 3;    // general status in format: "key:value, key:value"
+}
+message AtsCmdData
+{
+   enum Type {
+       FULL    = 0;
+       FILE    = 1;
+       LIBRARY = 2;
+       NET     = 3;
+       DEV     = 5;
+   }
+   Type type = 1;
+   string  patternUrl          = 2;    // The vulnerability-scan pattern
+   string  pattern             = 3;    // The pattern object name
+}
+message AtsFilData
+{
+   uint64  cmd          = 1;
+   string  path         = 2;    //generic path, rom path as "rom:/", memory path as "mem:address/size"
+   string  attribute    = 3;    //"key:value, "
+   string  signature    = 4;    //signature
+}
+message AtsNetData
+{
+   uint64 cmd           = 1;
+   // TBD
+}
+message AtsSysData
+{
+   uint64 cmd           = 1;
+   // TBD
+}
+message AtsDevData
+{
+   uint64   cmd         = 1;
+   string   object      = 2; // id2 challenge auth code as "auth_code:xxx", id2 id as "id:xxx"
+}
+message AtsEndData
+{
+   uint64   cmd         = 1;
+   uint32   total       = 2;
+   string    sum       = 3;    // file:xxx,net:xxx
+}
+message MesCmdData
+{
+   enum Type {
+       FULL   = 0;
+       FILE   = 1;
+       NET    = 3;
+   }
+   Type type = 1;
+}
+message MesFilData
+{
+   uint64   cmd         = 1;
+   string   sum         = 2;
+   string   mac         = 3; //use cmd as the heading value to calculate checksum
+}
+message MesNetData
+{
+   uint64   cmd         = 1;
+   string   sum         = 2;
+   string   mac         = 3;
+}
+message MesEndData
+{
+   uint64   cmd         = 1;
+   uint32   total       = 2;
+}
+message UptCmdData {
+   enum Type {
+       POLICY                  = 0;
+       SESSION                = 4;
+   }
+   Type   type                 = 1;
+   string url                  = 2;
+   string object               = 3; // id2 prov token as "token:xxx", id2 prov otp as "otp:xxx"
+}
+message Message      // SOC's command to DAS
+{
+   // Routing information
+   Domain domain               = 1;  
+   Code   code                 = 2;  // Select cmdData according to code
+   uint64 timestamp            = 3;  // epoch time (from Unix)
+   // check option, check required!!!
+   // check oneof selection !!
+   oneof data { //not only for cmd, also for message
+       InfData     infData     = 4;
+       AtsCmdData  atsCmdData  = 5;
+       AtsEndData  atsEndData  = 6;
+       AtsFilData  atsFilData  = 7; // file-by-file
+AtsDevData   atsDevData    = 10;  // file-by-file
+       MesCmdData  mesCmdData  = 11;
+       MesEndData  mesEndData  = 12;
+       MesFilData  mesFilData  = 13;
+UptCmdData   uptCmdData    = 32;
+   }
+   string session                   = 254; // instance id or id2 id as "id:xxx", id2 prov auth code as "auth_code:xxx", traditional token as "token:xxx"
+}
+
