@@ -30,34 +30,3 @@
 
 #include "IRbabySerial.h"
 #include "IRbabyAlink.h"
-#include "das.h"
-
-// global SOC session abstractive object
-static void* dasSession = NULL;
-
-int lsocClientInit(const char* productName, const char* deviceName) {
-    INFOLN("initialize SOC client");
-    dasSession = das_init(productName, deviceName);
-
-    if (NULL == dasSession) {
-        INFOLN("failed to initialize SOC client !!");
-        return -1;
-    }
-
-    INFOLN("SOC client initialized");
-    AliyunIoTSDK session = getSession();
-    das_connection(dasSession, securityPublish, &session);
-
-    return 0;
-}
-
-void setDas2Alink() {
-    // NOTE: if the Communication-processor has MQTT support,
-    // set connection to virutal socket pointer
-    // otherwise, set to espatblished Alink publish prototype
-    
-}
-
-void lsocInfoReport() {
-    
-}

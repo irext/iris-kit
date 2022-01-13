@@ -104,9 +104,6 @@ void setup() {
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
     disableRFTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableRF);
     saveDataTask.attach_scheduled(SAVE_DATA_INTERVALS, settingsSave);
-
-    // LSOC DAS2 related block
-    lsocHeartBeatTask.attach_scheduled(LSOC_HB_CYCLE, lsocInfoReport);
 }
 
 void loop() {
