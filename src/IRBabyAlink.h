@@ -24,10 +24,16 @@
 #ifndef IRBABY_ALINK_H
 #define IRBABY_ALINK_H
 
-#include <stddef.h>
+#include <stdint.h>
 #include <AliyunIoTSDK.h>
 
-typedef unsigned char uint8_t;
+typedef enum {
+    FSM_IDLE = 0,
+    FSM_CONNECTED = 1,
+    FSM_ACTIVE = 2,
+
+    FSM_MAX = 7,
+} ep_state_t;
 
 void connectToAliyunIoT();
 

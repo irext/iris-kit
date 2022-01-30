@@ -27,18 +27,22 @@
 #include "IRBabyAlink.h"
 #include "IRbabyGlobal.h"
 
-#define TOPIC_NAME_MAX  64
+#define TOPIC_NAME_MAX  (64)
 
-#define PRODUCT_KEY "a1WlzsJh50b"
-#define DEVICE_NAME "IRIS_Kit_Dev"
-#define DEVICE_SECRET "9df2c6b48e4c66519718cc236fc9fb79"
-#define REGION_ID "cn-shanghai"
+#define PRODUCT_KEY     "a1WlzsJh50b"
+#define DEVICE_NAME     "IRIS_Kit_Dev"
+#define DEVICE_SECRET   "9df2c6b48e4c66519718cc236fc9fb79"
+#define REGION_ID       "cn-shanghai"
+
+#define USER_NAME       "strawmanbobi@irext.net"
 
 static AliyunIoTSDK iot;
 static char IRIS_UPSTREAM_TOPIC[TOPIC_NAME_MAX] = { 0 };
+static ep_state_t endpoint_state = FSM_IDLE;
 
 static void registerCallback();
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length);
+static void sendIrisKitHeartBeat();
 
 void connectToAliyunIoT() {
     INFOLN("Try connecting to Aliyun IoT");
@@ -51,7 +55,7 @@ void connectToAliyunIoT() {
 
 void checkAlinkMQTT() {
     iot.loop();
-    iot.sendCustom(IRIS_UPSTREAM_TOPIC, "Hello IRIS");
+    sendIrisKitHeartBeat();
 }
 
 // not only for IRIS related topic based session
@@ -74,4 +78,8 @@ static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
     INFO((char*)data);
     INFO(", length = ");
     INFOLN(length);
+}
+
+static void sendIrisKitHeartBeat() {
+
 }

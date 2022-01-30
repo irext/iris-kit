@@ -43,8 +43,6 @@
 #include "IRbabyUserSettings.h"
 #include "IRbabyRF.h"
 
-#include "IRbabySecurity.h"
-
 void uploadIP();                       // device info upload to devicehive
 void IRAM_ATTR resetHandle();          // interrupt handle
 
@@ -81,7 +79,7 @@ void setup() {
     INFOLN("██║██╔══██╗██║╚════██║");
     INFOLN("██║██║  ██║██║███████║");
     INFOLN("╚═╝╚═╝  ╚═╝╚═╝╚══════╝");
-    INFOLN("== IRIS Kit [0.2.7] Powered by IRBaby ==");
+    INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
     wifi_manager.autoConnect();
     settingsLoad(); // load user settings form fs
@@ -92,6 +90,7 @@ void setup() {
     initRF(); // RF init
 #endif
     loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
+
 #ifdef USE_INFO_UPLOAD
     uploadIP();
 #endif
@@ -101,6 +100,7 @@ void setup() {
 #else
     alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkAlinkMQTT);
 #endif
+
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
     disableRFTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableRF);
     saveDataTask.attach_scheduled(SAVE_DATA_INTERVALS, settingsSave);
@@ -171,15 +171,4 @@ void uploadIP() {
     INFOF("update %s to devicehive\n", body.c_str());
     http.PUT(body);
     http.end();
-}
-
-// security related
-int securityPublish(const char *topic, const uint8_t *message, size_t msg_size, void *channel) {
-#if defined USE_IRBABY_MQTT 
-    // message via MQTT instance(not implemented)
-#else
-    // message via embedded Alink instance
-    sendRawData(topic, message, msg_size);
-#endif
-    return 0;
 }
