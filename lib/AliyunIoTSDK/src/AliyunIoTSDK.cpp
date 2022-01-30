@@ -187,7 +187,7 @@ void AliyunIoTSDK::loop() {
 
 void AliyunIoTSDK::sendEvent(const char *eventId, const char *param) {
     char topicKey[156];
-    sprintf(topicKey, "%s/%s/post", 0, eventId);
+    snprintf(topicKey, sizeof(topicKey) - 1, "%d/%s/post", 0, eventId);
     char jsonBuf[1024];
     sprintf(jsonBuf, ALINK_EVENT_BODY_FORMAT, param, eventId);
     Serial.println(jsonBuf);

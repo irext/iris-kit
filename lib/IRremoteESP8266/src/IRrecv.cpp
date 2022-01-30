@@ -33,13 +33,13 @@ volatile irparams_t irparams;
 irparams_t *irparams_save;  // A copy of the interrupt state while decoding.
 
 #ifndef UNIT_TEST
-static void ICACHE_RAM_ATTR read_timeout(void *arg __attribute__((unused))) {
+static void IRAM_ATTR read_timeout(void *arg __attribute__((unused))) {
   os_intr_lock();
   if (irparams.rawlen) irparams.rcvstate = kStopState;
   os_intr_unlock();
 }
 
-static void ICACHE_RAM_ATTR gpio_intr() {
+static void IRAM_ATTR gpio_intr() {
   uint32_t now = system_get_time();
   uint32_t gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
   static uint32_t start = 0;

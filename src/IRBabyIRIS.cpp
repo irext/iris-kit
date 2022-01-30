@@ -25,11 +25,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <ESP.h>
+#include <Esp.h>
 #include <WString.h>
 
 #include "defines.h"
-#include "IRBabyIRIS.h"
+#include "IRbabyIRIS.h"
 
 int getIRISKitVersion(char *buffer, int buffer_size) {
     if (NULL == buffer) {

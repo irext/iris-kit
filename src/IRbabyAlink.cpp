@@ -24,7 +24,7 @@
 #include <Arduino.h>
 
 #include "IRbabySerial.h"
-#include "IRBabyAlink.h"
+#include "IRbabyAlink.h"
 #include "IRbabyGlobal.h"
 
 #define TOPIC_NAME_MAX  (64)
