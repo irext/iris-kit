@@ -29,7 +29,7 @@
 #include <WString.h>
 
 #include "defines.h"
-#include "IRbabyIRIS.h"
+#include "IRBabyIRIS.h"
 
 int getIRISKitVersion(char *buffer, int buffer_size) {
     if (NULL == buffer) {
