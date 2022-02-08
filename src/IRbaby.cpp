@@ -81,7 +81,15 @@ void setup() {
     INFOLN("╚═╝╚═╝  ╚═╝╚═╝╚══════╝");
     INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
+    // custom parameter for iris credentials
+    char iris_credential[40] = { 0 };
+    WiFiManagerParameter irisCredential("server", "Credential", iris_credential, 40);
+    wifi_manager.addParameter(&irisCredential);
     wifi_manager.autoConnect();
+
+    strcpy(iris_credential, irisCredential.getValue());
+    INFOF("get iris credential : %s\n", iris_credential);
+
     settingsLoad(); // load user settings form fs
     delay(5);
     udpInit();
