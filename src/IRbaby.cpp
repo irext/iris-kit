@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  * 
  * Author: Strawmanbobi and Caffreyfans
  *
@@ -29,7 +29,6 @@
 
 #include "defines.h"
 #include "IRbabyIR.h"
-#include "IRbabyUDP.h"
 #include "IRbabyOTA.h"
 
 #if defined USE_IRBABY_MQTT
@@ -41,7 +40,13 @@
 #include "IRbabyMsgHandler.h"
 #include "IRbabyGlobal.h"
 #include "IRbabyUserSettings.h"
+#include "IRbabyHttp.h"
+#include "IRbabyIRIS.h"
 #include "IRbabyRF.h"
+
+
+extern char iris_server_address[];
+extern char iris_credential_token[];
 
 void uploadIP();                       // device info upload to devicehive
 void IRAM_ATTR resetHandle();          // interrupt handle
@@ -82,33 +87,49 @@ void setup() {
     INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
     // custom parameter for iris credentials
-    char iris_credential[40] = { 0 };
-    WiFiManagerParameter irisCredential("server", "Credential", iris_credential, 40);
-    wifi_manager.addParameter(&irisCredential);
-    wifi_manager.autoConnect();
 
-    strcpy(iris_credential, irisCredential.getValue());
-    INFOF("get iris credential : %s\n", iris_credential);
+    WiFiManagerParameter server_address("server", "Server", "http://192.168.2.31:8081", URL_SHORT_MAX);
+    WiFiManagerParameter credential_token("credential", "Credential", "", CREDENTIAL_MAX);
+
+    wifi_manager.addParameter(&server_address);
+    wifi_manager.addParameter(&credential_token);
+
+    wifi_manager.autoConnect();
+    
+    memset(iris_server_address, 0, URL_SHORT_MAX);
+    strcpy(iris_server_address, server_address.getValue());
+
+    memset(iris_credential_token, 0, CREDENTIAL_MAX);
+    strcpy(iris_credential_token, credential_token.getValue());
+
+    INFOF("Wifi Connected, IRIS server = %s, credential token = %s\n",
+            iris_server_address, iris_credential_token);
+
+    do {
+        if(WiFi.status()== WL_CONNECTED) {
+            if (0 == fetchIrisCredential(iris_credential_token)) {
+                break;
+            }
+        } else {
+            delay(1000);
+        }
+    } while (1);
+
+    INFOF("credential matched : %s\n", iris_credential_token);
 
     settingsLoad(); // load user settings form fs
     delay(5);
-    udpInit();
     connectToAliyunIoT();
 #ifdef USE_RF
     initRF(); // RF init
 #endif
     loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
 
-#ifdef USE_INFO_UPLOAD
-    uploadIP();
-#endif
-
 #if defined USE_IRBABY_MQTT
     mqttCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, mqttCheck);
 #else
     alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkAlinkMQTT);
 #endif
-
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
     disableRFTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableRF);
     saveDataTask.attach_scheduled(SAVE_DATA_INTERVALS, settingsSave);
@@ -121,6 +142,8 @@ void loop() {
     /* RF receive */
     recvRF();
 #endif
+
+#if 0
     /* UDP receive and handle */
     char *msg = udpRecive();
     if (msg) {
@@ -131,6 +154,7 @@ void loop() {
         }
         msgHandle(&udp_msg_doc, MsgType::udp);
     }
+#endif
 
 #if defined USE_IRBABY_MQTT
     /* MQTT loop */
@@ -152,31 +176,4 @@ void resetHandle() {
     if (end_time - start_time > 3000) {
         settingsClear();
     }
-}
-
-// only upload chip id
-void uploadIP() {
-    HTTPClient http;
-    StaticJsonDocument<128> body_json;
-    String chip_id = String(ESP.getChipId(), HEX);
-    chip_id.toUpperCase();
-    String head = "http://playground.devicehive.com/api/rest/device/";
-    head += chip_id;
-    http.begin(wifi_client, head);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization",
-                   "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ"
-                   "wYXlsb2FkIjp7ImEiOlsyLDMsNCw1LD"
-                   "YsNyw4LDksMTAsMTEsMTIsMTUsMTYsM"
-                   "TddLCJlIjoxNzQzNDM2ODAwMDAwLCJ0"
-                   "IjoxLCJ1Ijo2NjM1LCJuIjpbIjY1NDI"
-                   "iXSwiZHQiOlsiKiJdfX0.WyyxNr2OD5"
-                   "pvBSxMq84NZh6TkNnFZe_PXenkrUkRS"
-                   "iw");
-    body_json["name"] = chip_id;
-    body_json["networkId"] = "6542";
-    String body = body_json.as<String>();
-    INFOF("update %s to devicehive\n", body.c_str());
-    http.PUT(body);
-    http.end();
 }

@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 
 #include "IRbabyha.h"
 #include "IRbabyGlobal.h"
-#include "IRbabyMQTT.h"
 #include "IRbabySerial.h"
 
 void returnACStatus(String filename, t_remote_ac_status ac_status) {
@@ -34,13 +33,14 @@ void returnACStatus(String filename, t_remote_ac_status ac_status) {
     const char* mode[] = {"cool", "heat", "auto", "fan_only", "dry"};
     const char* fan[] = {"auto", "low", "medium", "high", "max"};
     const char* swing[] = {"on", "off"};
-    if (ac_status.ac_power == AC_POWER_OFF)
-        mqttPublish(topic_head + "mode", "off");
-    else
-        mqttPublish(topic_head + "mode", mode[(int)ac_status.ac_mode]);
-    mqttPublish(topic_head + "temperature", String((int)ac_status.ac_temp + 16));
-    mqttPublish(topic_head + "fan", fan[(int)ac_status.ac_wind_speed]);
-    mqttPublish(topic_head + "swing", swing[(int)ac_status.ac_swing]);
+    if (ac_status.ac_power == AC_POWER_OFF) {
+        // mqttPublish(topic_head + "mode", "off");
+    } else {
+        // mqttPublish(topic_head + "mode", mode[(int)ac_status.ac_mode]);
+        // mqttPublish(topic_head + "temperature", String((int)ac_status.ac_temp + 16));
+        // mqttPublish(topic_head + "fan", fan[(int)ac_status.ac_wind_speed]);
+        // mqttPublish(topic_head + "swing", swing[(int)ac_status.ac_swing]);
+    }
 }
 
 // save current AC status
@@ -99,5 +99,5 @@ void registAC(String filename, bool flag) {
         serializeJson(send_msg_doc, reg_content);
     }
     DEBUGLN(reg_topic_head);
-    mqttPublishRetained(reg_topic_head, reg_content);
+    // mqttPublishRetained(reg_topic_head, reg_content);
 }

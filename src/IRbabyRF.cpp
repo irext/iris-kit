@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 #include <LittleFS.h>
 #include "IRbabySerial.h"
 #include "IRbabyGlobal.h"
-#include "IRbabyUDP.h"
 #include "defines.h"
 #include <Ticker.h>
 RCSwitch rf315;
@@ -113,7 +112,7 @@ void recvRF(void) {
             send_msg_doc["cmd"] = "record_rt";
             send_msg_doc["params"]["signal"] = "RF433";
             send_msg_doc["params"]["value"] = String(code_tmp);
-            sendUDP(&send_msg_doc, remote_ip);
+            // sendUDP(&send_msg_doc, remote_ip);
             serializeJsonPretty(send_msg_doc, Serial);
         }
 
@@ -126,7 +125,7 @@ void recvRF(void) {
             send_msg_doc["cmd"] = "record_rt";
             send_msg_doc["params"]["signal"] = "RF315";
             send_msg_doc["params"]["value"] = String(code_tmp);
-            sendUDP(&send_msg_doc, remote_ip);
+            // sendUDP(&send_msg_doc, remote_ip);
             serializeJsonPretty(send_msg_doc, Serial);
         }
     }

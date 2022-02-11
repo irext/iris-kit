@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,20 +21,21 @@
  * SOFTWARE.
  */
 
+#include <LittleFS.h>
+
+#include "defines.h"
+
 #include "IRbabyMsgHandler.h"
 #include "IRbabySerial.h"
 #include "IRbabyUserSettings.h"
-#include "IRbabyMQTT.h"
-#include "IRbabyUDP.h"
 #include "ESP8266WiFi.h"
 #include "IRbabyIR.h"
-#include "../lib/Irext/include/ir_ac_control.h"
 #include "IRbabyOTA.h"
-#include "defines.h"
-#include <LittleFS.h>
 #include "IRbabyRF.h"
 #include "IRbabyGlobal.h"
 #include "IRbabyha.h"
+
+#include "ir_ac_control.h"
 
 bool msgHandle(StaticJsonDocument<1024> *p_recv_msg_doc, MsgType msg_type) {
     if (LOG_DEBUG) {
@@ -68,8 +69,8 @@ bool msgHandle(StaticJsonDocument<1024> *p_recv_msg_doc, MsgType msg_type) {
             }
 
             String ip = obj["params"]["ip"];
-            remote_ip.fromString(ip);
-            sendUDP(&send_msg_doc, remote_ip);
+            // remote_ip.fromString(ip);
+            // sendUDP(&send_msg_doc, remote_ip);
         } else if (type.equals("info")) {
             String free_mem = String(ESP.getFreeHeap() / 1024) + "KB";
             String chip_id = String(ESP.getChipId(), HEX);
@@ -96,7 +97,7 @@ bool msgHandle(StaticJsonDocument<1024> *p_recv_msg_doc, MsgType msg_type) {
             send_msg_doc["params"]["fs_used_bytes"] = fs_used_bytes;
             send_msg_doc["params"]["version_name"] = FIRMWARE_VERSION;
             send_msg_doc["params"]["version_code"] = VERSION_CODE;
-            returnUDP(&send_msg_doc);
+            // returnUDP(&send_msg_doc);
         }
     }
 
@@ -210,7 +211,7 @@ bool msgHandle(StaticJsonDocument<1024> *p_recv_msg_doc, MsgType msg_type) {
 
         else if (type.equals("record")) {
             String ip = params["ip"];
-            remote_ip.fromString(ip);
+            // remote_ip.fromString(ip);
             DEBUGLN("start record");
             enableIR();
             enableRF();
@@ -247,10 +248,8 @@ bool msgHandle(StaticJsonDocument<1024> *p_recv_msg_doc, MsgType msg_type) {
             }
             send_msg_doc["cmd"] = "return";
             send_msg_doc["params"]["message"] = "set success";
-            returnUDP(&send_msg_doc);
+            // returnUDP(&send_msg_doc);
             settingsSave();
-            mqttDisconnect();
-            mqttReconnect();
             loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
         }
 

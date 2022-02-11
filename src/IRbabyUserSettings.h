@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 #define IRBABY_USER_SETTINGS_H
 
 #include <ArduinoJson.h>
-#include "../lib/Irext/include/ir_ac_control.h"
+#include "ir_ac_control.h"
 
 /* save settings */
 bool settingsSave();

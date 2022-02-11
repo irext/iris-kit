@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,6 @@
 /* goable json variable */
 extern StaticJsonDocument<1024> recv_msg_doc;
 extern StaticJsonDocument<1024> send_msg_doc;
-extern StaticJsonDocument<1024> udp_msg_doc;
-extern StaticJsonDocument<1024> mqtt_msg_doc;
 
 extern WiFiManager wifi_manager;
 extern WiFiClient wifi_client;

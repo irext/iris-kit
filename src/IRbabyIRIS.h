@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 
 #ifndef IRBABY_IRIS_H
 #define IRBABY_IRIS_H
+
+#define CREDENTIAL_MAX   (40)
 
 int getIRISKitVersion(char *buffer, int buffer_size);
 

@@ -1,17 +1,17 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
- * 
+ * Copyright (c) 2020-2022 IRbaby-IRext
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -21,20 +21,17 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_UDP_H
-#define IRBABY_UDP_H
+#ifndef IRBABY_HTTP_H
+#define IRBABY_HTTP_H
 
-#include "ArduinoJson.h"
-#include "ESP8266WiFi.h"
+#include <WString.h>
 
-#define UDP_PORT 4210
-#define UDP_PACKET_SIZE 255
+#define URL_SHORT_MAX  (128)
 
-void udpInit();
-char* udpRecive();
-uint32_t sendUDP(StaticJsonDocument<1024>* doc, IPAddress ip);
-uint32_t returnUDP(StaticJsonDocument<1024>* doc);
 
-extern IPAddress remote_ip;
+int fetchIrisCredential(String credential_token);
 
-#endif // IRBABY_UDP_H
+void downLoadFile(String file, String path);
+
+
+#endif // IRBABY_HTTP_H

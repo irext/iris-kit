@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,16 @@
 
 #include <LittleFS.h>
 
-#include "IRbabyIR.h"
-#include "ESP8266HTTPClient.h"
-#include "IRbabySerial.h"
-#include "IRbabyUDP.h"
-#include "IRbabyUserSettings.h"
-#include "IRbabyGlobal.h"
 #include "defines.h"
 
-#define DOWNLOAD_PREFIX "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
-#define DOWNLOAD_SUFFIX ".bin"
-#define SAVE_PATH "/bin/"
+#include "IRbabyGlobal.h"
+#include "IRbabySerial.h"
+#include "IRbabyUserSettings.h"
+#include "IRbabyHttp.h"
+
+#include "IRbabyIR.h"
+
+#define SAVE_PATH     "/bin/"
 
 decode_results results; // Somewhere to store the results
 const uint8_t kTimeout = 50;
@@ -44,33 +43,6 @@ static IRsend * ir_send = nullptr;
 static IRrecv * ir_recv = nullptr;
 bool saveSignal();
 
-void downLoadFile(String file) {
-    HTTPClient http_client;
-    String download_url = DOWNLOAD_PREFIX + file + DOWNLOAD_SUFFIX;
-    String save_path = SAVE_PATH + file;
-    File cache = LittleFS.open(save_path, "w");
-    bool download_flag = false;
-    if (cache) {
-        http_client.begin(wifi_client, download_url);
-        for (int i = 0; i < 5; i++) {
-            if (http_client.GET() == HTTP_CODE_OK) {
-                download_flag = true;
-                break;
-            }
-            delay(200);
-        }
-        if (download_flag) {
-            http_client.writeToStream(&cache);
-            DEBUGF("Download %s success\n", file.c_str());
-        } else {
-            LittleFS.remove(save_path);
-            ERRORF("Download %s failed\n", file.c_str());
-        }
-    } else
-        ERRORLN("Don't have enough file zoom");
-    cache.close();
-    http_client.end();
-}
 
 bool sendIR(String file_name) {
     String save_path = SAVE_PATH + file_name;
@@ -100,7 +72,7 @@ bool sendIR(String file_name) {
 void sendStatus(String file, t_remote_ac_status status) {
     String save_path = SAVE_PATH + file;
     if (!LittleFS.exists(save_path)) {
-        downLoadFile(file);
+        downLoadFile(file, SAVE_PATH);
     }
 
     if (LittleFS.exists(save_path)) {
@@ -152,7 +124,7 @@ void recvIR() {
         send_msg_doc["params"]["length"] = results.rawlen;
         send_msg_doc["params"]["value"] = raw_data.c_str();
         DEBUGLN(raw_data.c_str());
-        sendUDP(&send_msg_doc, remote_ip);
+        // sendUDP(&send_msg_doc, remote_ip);
         saveSignal();
     }
 }

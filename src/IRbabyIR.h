@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2021 IRbaby-IRext
+ * Copyright (c) 2020-2022 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,13 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABYIR_H
-#define IRBABYIR_H
+#ifndef IRBABY_IR_H
+#define IRBABY_IR_H
 
 #include <Arduino.h>
 #include <IRsend.h>
 #include <IRrecv.h>
-#include "../lib/Irext/include/ir_decode.h"
+#include "ir_decode.h"
 
 void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
 void enableIR();
@@ -38,4 +38,5 @@ bool sendIR(String file_name);
 void recvIR();
 bool saveIR(String file_name);
 void initAC(String);
-#endif // IRBABAYIR_H
+
+#endif // IRBABY_IR_H
