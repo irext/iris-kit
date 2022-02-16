@@ -103,7 +103,9 @@ static void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 static bool mqttConnecting = false;
-void AliyunIoTSDK::mqttCheckConnect() {
+int AliyunIoTSDK::mqttCheckConnect() {
+    int mqttStatus = 0;
+
     Serial.println("INFO:\tAlink MQTT connection checking...");
 
     if (client != NULL && false == mqttConnecting) {
@@ -125,11 +127,13 @@ void AliyunIoTSDK::mqttCheckConnect() {
                     Serial.print("ERROR:\tMQTT Connect err:");
                     Serial.println(client->state());
                     delay(60000);
+                    mqttStatus = -1;
                 }
                 mqttConnecting = false;
             }
         }
     }
+    return mqttStatus;
 }
 
 void AliyunIoTSDK::begin(Client &espClient,
@@ -176,13 +180,21 @@ void AliyunIoTSDK::begin(Client &espClient,
     mqttCheckConnect();
 }
 
-void AliyunIoTSDK::loop() {
+int AliyunIoTSDK::loop() {
+    int mqttStatus = 0;
     client->loop();
     if (millis() - lastMs >= CHECK_INTERVAL) {
         lastMs = millis();
-        mqttCheckConnect();
+        mqttStatus = mqttCheckConnect();
+    }
+    Serial.print("MQTT connect return: ");
+    Serial.println(mqttStatus);
+ 
+    if (0 == mqttStatus) {
         messageBufferCheck();
     }
+
+    return mqttStatus;
 }
 
 void AliyunIoTSDK::sendEvent(const char *eventId, const char *param) {
@@ -192,7 +204,7 @@ void AliyunIoTSDK::sendEvent(const char *eventId, const char *param) {
     sprintf(jsonBuf, ALINK_EVENT_BODY_FORMAT, param, eventId);
     Serial.println(jsonBuf);
     boolean d = client->publish(topicKey, jsonBuf);
-    Serial.print("publish:0 successfully:");
+    Serial.print("publish: 0 successfully: ");
     Serial.println(d);
 }
 

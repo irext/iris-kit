@@ -22,19 +22,21 @@
  */
 
 #include <Arduino.h>
+#include <WString.h>
 
 #include "IRbabySerial.h"
 #include "IRbabyAlink.h"
 #include "IRbabyGlobal.h"
 
-#define TOPIC_NAME_MAX  (64)
+#include "IRbaby.h"
 
-#define PRODUCT_KEY     "a1WlzsJh50b"
-#define DEVICE_NAME     "IRIS_Kit_Dev"
-#define DEVICE_SECRET   "9df2c6b48e4c66519718cc236fc9fb79"
-#define REGION_ID       "cn-shanghai"
+#define TOPIC_NAME_MAX    (64)
+#define IOT_RETRY_MAX     (3)
 
-#define USER_NAME       "strawmanbobi@irext.net"
+String g_product_key = "";
+String g_device_name = "";
+String g_device_secret = "";
+String g_region_id = "cn-shanghai";
 
 static AliyunIoTSDK iot;
 static char IRIS_UPSTREAM_TOPIC[TOPIC_NAME_MAX] = { 0 };
@@ -42,20 +44,35 @@ static ep_state_t endpoint_state = FSM_IDLE;
 
 static void registerCallback();
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length);
+
+static int iot_retry = 0;
+
 static void sendIrisKitHeartBeat();
 
 void connectToAliyunIoT() {
-    INFOLN("Try connecting to Aliyun IoT");
-    iot.begin(wifi_client, PRODUCT_KEY, DEVICE_NAME, DEVICE_SECRET, REGION_ID);
+    INFOF("Try connecting to Aliyun IoT : %s, %s, %s, %s\n",
+          g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
+    iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
     INFOLN("Aliyun IoT connect done");
-    snprintf(IRIS_UPSTREAM_TOPIC, TOPIC_NAME_MAX - 1, "/%s/%s/user/iris/upstream", PRODUCT_KEY,
-             DEVICE_NAME);
+    snprintf(IRIS_UPSTREAM_TOPIC, TOPIC_NAME_MAX - 1, "/%s/%s/user/iris/upstream",
+            g_product_key.c_str(), g_device_name.c_str());
     registerCallback();
 }
 
 void checkAlinkMQTT() {
-    iot.loop();
-    sendIrisKitHeartBeat();
+    int mqttStatus = 0;
+    mqttStatus = iot.loop();
+
+    if (0 == mqttStatus) {
+        iot_retry = 0;
+        sendIrisKitHeartBeat();
+    } else {
+        iot_retry++;
+    }
+    if (iot_retry >= IOT_RETRY_MAX) {
+        ERRORLN("Alink could not established, something went wrong, reset...");
+        wifiReset();
+    }
 }
 
 // not only for IRIS related topic based session

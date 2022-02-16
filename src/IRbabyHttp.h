@@ -29,7 +29,10 @@
 #define URL_SHORT_MAX  (128)
 
 
-int fetchIrisCredential(String credential_token);
+int fetchIrisCredential(String credential_token,
+                        String& product_key,
+                        String& device_name,
+                        String& device_secret);
 
 void downLoadFile(String file, String path);
 

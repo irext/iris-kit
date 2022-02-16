@@ -39,36 +39,61 @@
 #define DOWNLOAD_SUFFIX              ".bin"
 
 
-extern StaticJsonDocument<1024> http_json_doc;
+extern StaticJsonDocument<1024> http_request_doc;
+extern StaticJsonDocument<1024> http_response_doc;
 
 
 char iris_server_address[URL_SHORT_MAX] = { 0 };
 
 
-int fetchIrisCredential(String credential_token) {
+int fetchIrisCredential(String credential_token,
+                        String& product_key,
+                        String& device_name,
+                        String& device_secret) {
     int ret = -1;
 
-    HTTPClient http_client;
+    String device_sn("IRbaby_");
     String fetch_credential_url(iris_server_address);
+    HTTPClient http_client;
+    int tsi = 0;
     int response_code = 0;
     fetch_credential_url.concat(String(FETCH_CREDENTIAL_SUFFIX));
+    device_sn.concat(String(ESP.getChipId(), HEX));
 
     INFOF("fetch credential URL = %s\n", fetch_credential_url.c_str());
+    if (credential_token.isEmpty()) {
+        ERRORLN("credential token is empty");
+        return -1;
+    }
+    tsi = credential_token.indexOf(",");
+    if (-1 == tsi) {
+        ERRORLN("credential token format error");
+        return -1;
+    }
+    product_key = credential_token.substring(0, tsi);
+    device_name = credential_token.substring(tsi + 1);
 
     http_client.begin(wifi_client, fetch_credential_url);
     http_client.addHeader("Content-Type", "application/json");
-    http_json_doc.clear();
-    http_json_doc["endpointSN"] = String(ESP.getChipId(), HEX);
-    http_json_doc["credentialToken"] = credential_token;
+    http_request_doc.clear();
+    http_request_doc["endpointSN"] = device_sn;
+    http_request_doc["credentialToken"] = credential_token;
     String request_data = "";
-    serializeJson(http_json_doc, request_data);
+    serializeJson(http_request_doc, request_data);
 
     response_code = http_client.POST(request_data);
-    if (response_code > 0) {
-        INFOF("HTTP response code: %d\n", response_code);
+    if (200 == response_code) {
+        INFOF("HTTP response code = %d\n", response_code);
         String payload = http_client.getString();
         INFOF("HTTP response payload = %s\n", payload.c_str());
-        ret = 0;
+        http_response_doc.clear();
+        if (OK == deserializeJson(http_response_doc, payload.c_str())) {
+            String ds = http_response_doc["entity"];
+            device_secret = ds;
+            INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
+                   product_key.c_str(), device_name.c_str(), device_secret.c_str());
+            ret = 0;
+        }
     }
 
     http_client.end();

@@ -44,9 +44,19 @@
 #include "IRbabyIRIS.h"
 #include "IRbabyRF.h"
 
+#include "IRbaby.h"
+
+#define CREDENTIAL_INIT_RETRY_MAX  (3)
 
 extern char iris_server_address[];
 extern char iris_credential_token[];
+
+extern String g_product_key;
+extern String g_device_name;
+extern String g_device_secret;
+
+int credential_init_retry = 0;
+
 
 void uploadIP();                       // device info upload to devicehive
 void IRAM_ATTR resetHandle();          // interrupt handle
@@ -95,7 +105,7 @@ void setup() {
     wifi_manager.addParameter(&credential_token);
 
     wifi_manager.autoConnect();
-    
+
     memset(iris_server_address, 0, URL_SHORT_MAX);
     strcpy(iris_server_address, server_address.getValue());
 
@@ -107,18 +117,26 @@ void setup() {
 
     do {
         if(WiFi.status()== WL_CONNECTED) {
-            if (0 == fetchIrisCredential(iris_credential_token)) {
+            if (0 == fetchIrisCredential(iris_credential_token,
+                                         g_product_key,
+                                         g_device_name,
+                                         g_device_secret)) {
                 break;
             }
-        } else {
-            delay(1000);
         }
+        credential_init_retry++;
+        if (credential_init_retry >= CREDENTIAL_INIT_RETRY_MAX) {
+            ERRORLN("retried fetch credential for 3 times, reset WiFi");
+            wifiReset();
+        }
+        delay(1000);
     } while (1);
 
-    INFOF("credential matched : %s\n", iris_credential_token);
+    INFOF("credential get : %s\n", iris_credential_token);
 
     settingsLoad(); // load user settings form fs
-    delay(5);
+    delay(1000);
+
     connectToAliyunIoT();
 #ifdef USE_RF
     initRF(); // RF init
@@ -133,6 +151,11 @@ void setup() {
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
     disableRFTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableRF);
     saveDataTask.attach_scheduled(SAVE_DATA_INTERVALS, settingsSave);
+}
+
+void wifiReset() {
+    WiFi.disconnect();
+    ESP.reset();
 }
 
 void loop() {

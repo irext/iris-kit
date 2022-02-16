@@ -46,7 +46,7 @@ private:
 public:
 
   // MQTT keep alive handler
-  static void mqttCheckConnect();
+  static int mqttCheckConnect();
 
   // offical defined topic templates (not used)
   static char ALINK_TOPIC_PROP_POST[150];
@@ -54,7 +54,7 @@ public:
   static char ALINK_TOPIC_EVENT[150];
 
   // MQTT keep alive task
-  static void loop();
+  static int loop();
 
   /**
    * Initialize and connect to AliyunIoT
