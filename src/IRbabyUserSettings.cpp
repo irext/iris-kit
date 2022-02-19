@@ -31,21 +31,41 @@
 
 #include "IRbabyUserSettings.h"
 
+
+#define FILE_GENERIC_CONFIG      "config"
+#define FILE_AC_STATUS           "ac_status"
+#define IRISKIT_SETTINGS         "iriskit_settings"
+
+
 StaticJsonDocument<1024> ConfigData;
 StaticJsonDocument<1024> ACStatus;
+StaticJsonDocument<1024> IrisKitSettings;
 
 bool saveSettings() {
-    DEBUGLN("Save Config");
-    File cache = LittleFS.open("/config", "w");
+    DEBUGLN("save configs for IRIS Kit");
+
+    // generic config partial
+    File cache = LittleFS.open(FILE_GENERIC_CONFIG, "w");
     if (!cache || (serializeJson(ConfigData, cache) == 0)) {
-        ERRORLN("Failed to save config file");
+        ERRORLN("failed to save config file");
         cache.close();
         return false;
     }
     cache.close();
-    cache = LittleFS.open("/acstatus", "w");
+
+    // AC status partial
+    cache = LittleFS.open(FILE_AC_STATUS, "w");
     if (!cache || (serializeJson(ACStatus, cache) == 0)) {
-        ERRORLN("ERROR: Failed to save acstatus file");
+        ERRORLN("ERROR: failed to save AC status file");
+        cache.close();
+        return false;
+    }
+    cache.close();
+
+    // credential partial
+    cache = LittleFS.open(IRISKIT_SETTINGS, "w");
+    if (!cache || (serializeJson(IrisKitSettings, cache) == 0)) {
+        ERRORLN("ERROR: failed to save credentials file");
         cache.close();
         return false;
     }
@@ -58,50 +78,73 @@ bool loadSettings() {
     int ret = false;
     FSInfo64 info;
     LittleFS.info64(info);
-    DEBUGF("fs total bytes = %llu\n", info.totalBytes);
-    if (LittleFS.exists("/config")) {
-        File cache = LittleFS.open("/config", "r");
+    DEBUGF("fsstats: total bytes = %llu, used = %llu\n", info.totalBytes, info.usedBytes);
+
+    // generic config partial
+    if (LittleFS.exists(FILE_GENERIC_CONFIG)) {
+        File cache = LittleFS.open(FILE_GENERIC_CONFIG, "r");
         if (!cache) {
-            ERRORLN("Failed to read config file");
+            ERRORLN("failed to read config file");
             return ret;
         }
         if (cache.size() > 0) {
             DeserializationError error = deserializeJson(ConfigData, cache);
             if (error) {
-                ERRORLN("Failed to load config settings");
+                ERRORLN("failed to load config settings");
                 return ret;
             }
-            INFOLN("Load config data:");
+            INFOLN("generic config loaded");
             ConfigData["version"] = FIRMWARE_VERSION;
             serializeJsonPretty(ConfigData, Serial);
             Serial.println();
         }
         cache.close();
     } else {
-        DEBUGLN("Config does not exist");
+        DEBUGLN("config does not exist");
     }
 
-    if (LittleFS.exists("/acstatus")) {
-        File cache = LittleFS.open("/acstatus", "r");
+    // AC status partial
+    if (LittleFS.exists(FILE_AC_STATUS)) {
+        File cache = LittleFS.open(FILE_AC_STATUS, "r");
         if (!cache) {
-            ERRORLN("Failed to read acstatus file");
+            ERRORLN("failed to read AC status file");
             return ret;
         }
         if (cache.size() > 0) {
             DeserializationError error = deserializeJson(ACStatus, cache);
             if (error) {
-                ERRORLN("Failed to load acstatus settings");
+                ERRORLN("failed to load AC status settings");
                 return ret;
             }
+            INFOLN("AC status loaded");
         }
         cache.close();
     }
+
+    // credential partial
+    if (LittleFS.exists(IRISKIT_SETTINGS)) {
+        File cache = LittleFS.open(IRISKIT_SETTINGS, "r");
+        if (!cache) {
+            ERRORLN("failed to read acstatus file");
+            return ret;
+        }
+        if (cache.size() > 0) {
+            DeserializationError error = deserializeJson(IrisKitSettings, cache);
+            if (error) {
+                ERRORLN("failed to load credentials settings");
+                return ret;
+            }
+            INFOLN("credentials loaded");
+        }
+        cache.close();
+    }
+
     ret = true;
     return ret;
 }
 
 bool saveACStatus(String file, t_remote_ac_status status) {
-    bool ret = false;
+    bool ret = true;
     ACStatus[file]["power"] = (int)status.ac_power;
     ACStatus[file]["temperature"] = (int)status.ac_temp;
     ACStatus[file]["mode"] = (int)status.ac_mode;
@@ -112,15 +155,28 @@ bool saveACStatus(String file, t_remote_ac_status status) {
 
 t_remote_ac_status getACStatus(String file) {
     t_remote_ac_status status;
-    int power = (int)ACStatus[file]["power"];
-    int temperature = (int)ACStatus[file]["temperature"];
-    int mode = (int)ACStatus[file]["mode"];
-    int swing = (int)ACStatus[file]["swing"];
-    int wind_speed = (int)ACStatus[file]["speed"];
+    int power = (int) ACStatus[file]["power"];
+    int temperature = (int) ACStatus[file]["temperature"];
+    int mode = (int) ACStatus[file]["mode"];
+    int swing = (int) ACStatus[file]["swing"];
+    int wind_speed = (int) ACStatus[file]["speed"];
     status.ac_power = (t_ac_power)power;
     status.ac_temp = (t_ac_temperature)temperature;
     status.ac_mode = (t_ac_mode)mode;
     status.ac_swing = (t_ac_swing)swing;
     status.ac_wind_speed = (t_ac_wind_speed)wind_speed;
     return status;
+}
+
+bool saveIrisKitSettings(t_iriskit_settings& iriskit_settings) {
+    IrisKitSettings["server_address"] = iriskit_settings.server_address;
+    IrisKitSettings["token"] = iriskit_settings.credential_token;
+    return true;
+}
+
+t_iriskit_settings getIrisKitSettings() {
+    t_iriskit_settings iriskit_settings;
+    iriskit_settings.server_address = (String)IrisKitSettings["server_address"];
+    iriskit_settings.credential_token = (String)IrisKitSettings["token"];
+    return iriskit_settings;
 }

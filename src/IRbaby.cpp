@@ -51,7 +51,8 @@ extern String g_device_secret;
 
 // public variable definitions
 int credential_init_retry = 0;
-
+t_iriskit_settings iriskit_settings;
+bool iriskit_settings_loaded = false;
 
 
 // private variable definitions
@@ -86,19 +87,52 @@ void setup() {
     INFOLN("╚═╝╚═╝  ╚═╝╚═╝╚══════╝");
     INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
-    // custom parameter for iris credentials
-    WiFiManagerParameter server_address("server", "Server", "", URL_SHORT_MAX);
-    WiFiManagerParameter credential_token("credential", "Credential", "", CREDENTIAL_MAX);
+    // try loading saved iriskit settings
+    if (loadSettings()) {
+        iriskit_settings = getIrisKitSettings();
+        INFOF("saved credentials loaded, token = %s\n",
+            iriskit_settings.credential_token.c_str());
+        iriskit_settings_loaded = true;
+    } else {
+        INFOLN("no credentials saved yet, request new from IRIS server");
+    }
 
-    wifi_manager.addParameter(&server_address);
-    wifi_manager.addParameter(&credential_token);
-    wifi_manager.autoConnect();
+    // custom parameter for iris credentials
+    WiFiManagerParameter* server_address = NULL;
+    WiFiManagerParameter* credential_token = NULL;
 
     memset(iris_server_address, 0, URL_SHORT_MAX);
-    strcpy(iris_server_address, server_address.getValue());
-
     memset(iris_credential_token, 0, CREDENTIAL_MAX);
-    strcpy(iris_credential_token, credential_token.getValue());
+
+    if (!iriskit_settings_loaded) {
+        server_address =
+            new WiFiManagerParameter("server_address", "Server Address", "", URL_SHORT_MAX);
+        credential_token =
+            new WiFiManagerParameter("credential_token", "Credential Token", "", CREDENTIAL_MAX);
+
+        if (NULL == server_address || NULL == credential_token) {
+            ERRORLN("not enough memory to create settings");
+            factoryReset();
+        }
+        wifi_manager.addParameter(server_address);
+        wifi_manager.addParameter(credential_token);
+    } else {
+        strcpy(iris_server_address, iriskit_settings.server_address.c_str());
+        strcpy(iris_credential_token, iriskit_settings.credential_token.c_str());
+    }
+
+    wifi_manager.autoConnect();
+
+    if (!iriskit_settings_loaded) {
+        memset(iris_server_address, 0, URL_SHORT_MAX);
+        strcpy(iris_server_address, server_address->getValue());
+
+        memset(iris_credential_token, 0, CREDENTIAL_MAX);
+        strcpy(iris_credential_token, credential_token->getValue());
+
+        delete server_address;
+        delete credential_token;
+    }
 
     INFOF("Wifi Connected, IRIS server = %s, credential token = %s\n",
           iris_server_address, iris_credential_token);
@@ -121,6 +155,11 @@ void setup() {
     } while (1);
 
     INFOF("credential get : %s\n", iris_credential_token);
+    iriskit_settings.server_address = String(iris_server_address);
+    iriskit_settings.credential_token = String(iris_credential_token);
+    saveIrisKitSettings(iriskit_settings);
+
+    saveSettings();
 
     delay(1000);
     connectToAliyunIoT();

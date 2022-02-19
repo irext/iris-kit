@@ -24,6 +24,12 @@
 #ifndef IRBABY_H
 #define IRBABY_H
 
+typedef struct {
+    String server_address;
+    String credential_token;
+} t_iriskit_settings;
+
+
 void IRAM_ATTR factoryReset();
 
 #endif // IRBABY_H

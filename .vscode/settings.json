@@ -11,6 +11,7 @@
         "ranges": "cpp",
         "memory": "cpp",
         "random": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "memory_resource": "cpp"
     }
 }

@@ -26,6 +26,7 @@
 
 #include <ArduinoJson.h>
 
+#include "IRbaby.h"
 #include "ir_ac_control.h"
 
 /* save settings */
@@ -37,7 +38,11 @@ bool loadSettings();
 bool saveACStatus(String file, t_remote_ac_status status);
 t_remote_ac_status getACStatus(String file);
 
+bool saveIrisKitSettings(t_iriskit_settings& iriskit_settings);
+t_iriskit_settings getIrisKitSettings();
+
 extern StaticJsonDocument<1024> ConfigData;
 extern StaticJsonDocument<1024> ACStatus;
+extern StaticJsonDocument<1024> IrisKitSettings;
 
 #endif // IRBABY_USER_SETTINGS_H
