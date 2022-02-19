@@ -34,7 +34,8 @@
 
 #include "IRbabyHttp.h"
 
-#define FETCH_CREDENTIAL_SUFFIX      "/irext-collect/credentials/fetch_credential" 
+#define FETCH_CREDENTIAL_SUFFIX      "/irext-collect/credentials/fetch_credential"
+#define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
 #define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
 #define DOWNLOAD_SUFFIX              ".bin"
 
@@ -52,13 +53,13 @@ int fetchIrisCredential(String credential_token,
                         String& device_secret) {
     int ret = -1;
 
-    String device_sn("IRbaby_");
+    String device_id("IRbaby_");
     String fetch_credential_url(iris_server_address);
     HTTPClient http_client;
     int tsi = 0;
     int response_code = 0;
     fetch_credential_url.concat(String(FETCH_CREDENTIAL_SUFFIX));
-    device_sn.concat(String(ESP.getChipId(), HEX));
+    device_id.concat(String(ESP.getChipId(), HEX));
 
     INFOF("fetch credential URL = %s\n", fetch_credential_url.c_str());
     if (credential_token.isEmpty()) {
@@ -76,7 +77,7 @@ int fetchIrisCredential(String credential_token,
     http_client.begin(wifi_client, fetch_credential_url);
     http_client.addHeader("Content-Type", "application/json");
     http_request_doc.clear();
-    http_request_doc["endpointSN"] = device_sn;
+    http_request_doc["deviceID"] = device_id;
     http_request_doc["credentialToken"] = credential_token;
     String request_data = "";
     serializeJson(http_request_doc, request_data);
@@ -91,7 +92,7 @@ int fetchIrisCredential(String credential_token,
             String ds = http_response_doc["entity"];
             device_secret = ds;
             INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
-                   product_key.c_str(), device_name.c_str(), device_secret.c_str());
+                  product_key.c_str(), device_name.c_str(), device_secret.c_str());
             ret = 0;
         }
     }
@@ -100,7 +101,6 @@ int fetchIrisCredential(String credential_token,
 
     return ret;
 }
-
 
 void downLoadFile(String file, String path) {
     HTTPClient http_client;

@@ -1,7 +1,7 @@
 /**
  *
  * Copyright (c) 2020-2022 IRbaby-IRext
- * 
+ *
  * Author: Strawmanbobi and Caffreyfans
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,31 +23,24 @@
  * SOFTWARE.
  */
 
-#include <Ticker.h>
 #include <Arduino.h>
-#include <ESP8266HTTPClient.h>
+#include <LittleFS.h>
+#include <Ticker.h>
 
 #include "defines.h"
 #include "IRbabyIR.h"
-#include "IRbabyOTA.h"
-
-#if defined USE_IRBABY_MQTT
-    #include "IRbabyMQTT.h"
-#else
-    #include "IRbabyAlink.h"
-#endif
-
-#include "IRbabyMsgHandler.h"
-#include "IRbabyGlobal.h"
-#include "IRbabyUserSettings.h"
+#include "IRbabyAlink.h"
 #include "IRbabyHttp.h"
+#include "IRbabyGlobal.h"
 #include "IRbabyIRIS.h"
-#include "IRbabyRF.h"
+#include "IRbabySerial.h"
+#include "IRbabyUserSettings.h"
 
 #include "IRbaby.h"
 
 #define CREDENTIAL_INIT_RETRY_MAX  (3)
 
+// external variable declarations
 extern char iris_server_address[];
 extern char iris_credential_token[];
 
@@ -55,25 +48,22 @@ extern String g_product_key;
 extern String g_device_name;
 extern String g_device_secret;
 
+
+// public variable definitions
 int credential_init_retry = 0;
 
 
-void uploadIP();                       // device info upload to devicehive
-void IRAM_ATTR resetHandle();          // interrupt handle
 
-#if defined USE_IRBABY_MQTT
-    Ticker mqttCheckTask;              // MQTT check timer
-#else
-    Ticker alinkCheckTask;             // Aliyun IoT MQTT check timer
-#endif
+// private variable definitions
+static Ticker alinkCheckTask;          // Aliyun IoT MQTT check timer
+static Ticker disableIRTask;           // disable IR receive
+static Ticker disableRFTask;           // disable RF receive
+static Ticker saveDataTask;            // save data
 
-Ticker disableIRTask;                  // disable IR receive
-Ticker disableRFTask;                  // disable RF receive
-Ticker saveDataTask;                   // save data
+// private function declarations
+static void wifiReset();
 
-// LSOC DAS2 related tasks
-Ticker lsocHeartBeatTask;              // lsoc heart beat sync
-
+// public function definitions
 void setup() {
     if (LOG_DEBUG || LOG_ERROR || LOG_INFO) {
         Serial.begin(BAUD_RATE);
@@ -82,7 +72,7 @@ void setup() {
     pinMode(RESET_PIN, INPUT_PULLUP);
     pinMode(0, OUTPUT);
     digitalWrite(0, LOW);
-    attachInterrupt(digitalPinToInterrupt(RESET_PIN), resetHandle, ONLOW);
+    attachInterrupt(digitalPinToInterrupt(RESET_PIN), factoryReset, ONLOW);
 
     delay(10);
 
@@ -97,13 +87,11 @@ void setup() {
     INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
     // custom parameter for iris credentials
-
-    WiFiManagerParameter server_address("server", "Server", "http://192.168.2.31:8081", URL_SHORT_MAX);
+    WiFiManagerParameter server_address("server", "Server", "", URL_SHORT_MAX);
     WiFiManagerParameter credential_token("credential", "Credential", "", CREDENTIAL_MAX);
 
     wifi_manager.addParameter(&server_address);
     wifi_manager.addParameter(&credential_token);
-
     wifi_manager.autoConnect();
 
     memset(iris_server_address, 0, URL_SHORT_MAX);
@@ -113,10 +101,10 @@ void setup() {
     strcpy(iris_credential_token, credential_token.getValue());
 
     INFOF("Wifi Connected, IRIS server = %s, credential token = %s\n",
-            iris_server_address, iris_credential_token);
+          iris_server_address, iris_credential_token);
 
     do {
-        if(WiFi.status()== WL_CONNECTED) {
+        if (WiFi.status() == WL_CONNECTED) {
             if (0 == fetchIrisCredential(iris_credential_token,
                                          g_product_key,
                                          g_device_name,
@@ -127,67 +115,27 @@ void setup() {
         credential_init_retry++;
         if (credential_init_retry >= CREDENTIAL_INIT_RETRY_MAX) {
             ERRORLN("retried fetch credential for 3 times, reset WiFi");
-            wifiReset();
+            factoryReset();
         }
         delay(1000);
     } while (1);
 
     INFOF("credential get : %s\n", iris_credential_token);
 
-    settingsLoad(); // load user settings form fs
     delay(1000);
-
     connectToAliyunIoT();
-#ifdef USE_RF
-    initRF(); // RF init
-#endif
     loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
 
-#if defined USE_IRBABY_MQTT
-    mqttCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, mqttCheck);
-#else
     alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkAlinkMQTT);
-#endif
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
-    disableRFTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableRF);
-    saveDataTask.attach_scheduled(SAVE_DATA_INTERVALS, settingsSave);
-}
-
-void wifiReset() {
-    WiFi.disconnect();
-    ESP.reset();
 }
 
 void loop() {
-    /* IR receive */
     recvIR();
-#ifdef USE_RF
-    /* RF receive */
-    recvRF();
-#endif
-
-#if 0
-    /* UDP receive and handle */
-    char *msg = udpRecive();
-    if (msg) {
-        udp_msg_doc.clear();
-        DeserializationError error = deserializeJson(udp_msg_doc, msg);
-        if (error) {
-            ERRORLN("Failed to parse udp message");
-        }
-        msgHandle(&udp_msg_doc, MsgType::udp);
-    }
-#endif
-
-#if defined USE_IRBABY_MQTT
-    /* MQTT loop */
-    mqttLoop();
-#endif
-
     yield();
 }
 
-void resetHandle() {
+void factoryReset() {
     static unsigned long last_interrupt_time = millis();
     unsigned long interrupt_time = millis();
     static unsigned long start_time = millis();
@@ -197,6 +145,16 @@ void resetHandle() {
     }
     last_interrupt_time = interrupt_time;
     if (end_time - start_time > 3000) {
-        settingsClear();
+        factoryReset();
     }
+}
+
+
+
+// private function defitions
+static void wifiReset() {
+    DEBUGLN("\nReset settings");
+    wifi_manager.resetSettings();
+    LittleFS.format();
+    ESP.reset();
 }

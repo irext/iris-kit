@@ -52,10 +52,11 @@ static void sendIrisKitHeartBeat();
 void connectToAliyunIoT() {
     INFOF("Try connecting to Aliyun IoT : %s, %s, %s, %s\n",
           g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
-    iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
+    iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
+              g_region_id.c_str());
     INFOLN("Aliyun IoT connect done");
     snprintf(IRIS_UPSTREAM_TOPIC, TOPIC_NAME_MAX - 1, "/%s/%s/user/iris/upstream",
-            g_product_key.c_str(), g_device_name.c_str());
+             g_product_key.c_str(), g_device_name.c_str());
     registerCallback();
 }
 
@@ -71,7 +72,7 @@ void checkAlinkMQTT() {
     }
     if (iot_retry >= IOT_RETRY_MAX) {
         ERRORLN("Alink could not established, something went wrong, reset...");
-        wifiReset();
+        factoryReset();
     }
 }
 

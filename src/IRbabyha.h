@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABYHA_H
-#define IRBABYHA_H
+#ifndef IRBABY_HA_H
+#define IRBABY_HA_H
 
 #include <WString.h>
 #include "ir_ac_control.h"
@@ -31,4 +31,4 @@ void returnACStatus(String filename, t_remote_ac_status ac_status);
 
 void registAC(String filename, bool flag);
 
-#endif
+#endif // IRBABY_HA_H

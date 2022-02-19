@@ -25,19 +25,17 @@
 #define IRBABY_USER_SETTINGS_H
 
 #include <ArduinoJson.h>
+
 #include "ir_ac_control.h"
 
 /* save settings */
-bool settingsSave();
-
-/* clear settings */
-void settingsClear();
+bool saveSettings();
 
 /* load settings */
-bool settingsLoad();
+bool loadSettings();
 
-bool saveACStatus(String, t_remote_ac_status);
-t_remote_ac_status getACState(String file);
+bool saveACStatus(String file, t_remote_ac_status status);
+t_remote_ac_status getACStatus(String file);
 
 extern StaticJsonDocument<1024> ConfigData;
 extern StaticJsonDocument<1024> ACStatus;

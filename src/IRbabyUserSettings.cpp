@@ -1,17 +1,17 @@
 /**
  *
  * Copyright (c) 2020-2022 IRbaby-IRext
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,19 +22,19 @@
  */
 
 #include <LittleFS.h>
+#include <WiFiManager.h>
+
+#include "defines.h"
+#include "IRbabyGlobal.h"
+#include "IRbabySerial.h"
+#include "IRbabyIR.h"
 
 #include "IRbabyUserSettings.h"
-#include "IRbabySerial.h"
-#include "WiFiManager.h"
-#include "IRbabyGlobal.h"
-#include "IRbabyIR.h"
-#include "defines.h"
 
 StaticJsonDocument<1024> ConfigData;
 StaticJsonDocument<1024> ACStatus;
 
-bool settingsSave()
-{
+bool saveSettings() {
     DEBUGLN("Save Config");
     File cache = LittleFS.open("/config", "w");
     if (!cache || (serializeJson(ConfigData, cache) == 0)) {
@@ -44,36 +44,30 @@ bool settingsSave()
     }
     cache.close();
     cache = LittleFS.open("/acstatus", "w");
-    if (!cache || (serializeJson(ACStatus, cache) == 0))
-    {
+    if (!cache || (serializeJson(ACStatus, cache) == 0)) {
         ERRORLN("ERROR: Failed to save acstatus file");
         cache.close();
-        return false;        
+        return false;
     }
     cache.close();
     return true;
 }
 
-bool settingsLoad()
-{
+bool loadSettings() {
     LittleFS.begin();
     int ret = false;
     FSInfo64 info;
     LittleFS.info64(info);
     DEBUGF("fs total bytes = %llu\n", info.totalBytes);
-    if (LittleFS.exists("/config"))
-    {
+    if (LittleFS.exists("/config")) {
         File cache = LittleFS.open("/config", "r");
-        if (!cache)
-        {
+        if (!cache) {
             ERRORLN("Failed to read config file");
             return ret;
         }
-        if (cache.size() > 0)
-        {
+        if (cache.size() > 0) {
             DeserializationError error = deserializeJson(ConfigData, cache);
-            if (error)
-            {
+            if (error) {
                 ERRORLN("Failed to load config settings");
                 return ret;
             }
@@ -106,16 +100,7 @@ bool settingsLoad()
     return ret;
 }
 
-void settingsClear()
-{
-    DEBUGLN("\nReset settings");
-    wifi_manager.resetSettings();
-    LittleFS.format();
-    ESP.reset();
-}
-
-bool saveACStatus(String file, t_remote_ac_status status)
-{
+bool saveACStatus(String file, t_remote_ac_status status) {
     bool ret = false;
     ACStatus[file]["power"] = (int)status.ac_power;
     ACStatus[file]["temperature"] = (int)status.ac_temp;
@@ -125,8 +110,7 @@ bool saveACStatus(String file, t_remote_ac_status status)
     return ret;
 }
 
-t_remote_ac_status getACState(String file)
-{
+t_remote_ac_status getACStatus(String file) {
     t_remote_ac_status status;
     int power = (int)ACStatus[file]["power"];
     int temperature = (int)ACStatus[file]["temperature"];
