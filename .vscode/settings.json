@@ -12,6 +12,7 @@
         "memory": "cpp",
         "random": "cpp",
         "optional": "cpp",
-        "memory_resource": "cpp"
+        "memory_resource": "cpp",
+        "system_error": "cpp"
     }
 }

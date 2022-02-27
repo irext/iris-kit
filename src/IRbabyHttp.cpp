@@ -52,9 +52,20 @@ int fetchIrisCredential(String credential_token,
                         String& device_name,
                         String& device_secret) {
     int ret = -1;
+    bool protocol_prefix = false;
+    String fetch_credential_url;
 
     String device_id("IRbaby_");
-    String fetch_credential_url(iris_server_address);
+    if (NULL != strstr(iris_server_address, "http://")) {
+        protocol_prefix = true;
+    }
+    if (protocol_prefix) {
+        fetch_credential_url = String(iris_server_address);
+    } else {
+        fetch_credential_url = String("http://");
+        fetch_credential_url.concat(iris_server_address);
+    }
+
     HTTPClient http_client;
     int tsi = 0;
     int response_code = 0;
@@ -89,14 +100,20 @@ int fetchIrisCredential(String credential_token,
         INFOF("HTTP response payload = %s\n", payload.c_str());
         http_response_doc.clear();
         if (OK == deserializeJson(http_response_doc, payload.c_str())) {
-            String ds = http_response_doc["entity"];
-            device_secret = ds;
-            INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
-                  product_key.c_str(), device_name.c_str(), device_secret.c_str());
-            ret = 0;
+            String ds = "";
+            int resultCode = http_response_doc["status"]["code"];
+            if (0 == resultCode) {
+                INFOLN("response valid, try getting entity");
+                ds = (String) http_response_doc["entity"];
+                device_secret = ds;
+                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
+                    product_key.c_str(), device_name.c_str(), device_secret.c_str());
+                ret = 0;
+            } else {
+                INFOF("response invalid, code = %d\n", resultCode);
+            }
         }
     }
-
     http_client.end();
 
     return ret;

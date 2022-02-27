@@ -68,6 +68,7 @@ void checkAlinkMQTT() {
         iot_retry = 0;
         sendIrisKitHeartBeat();
     } else {
+        INFOF("Alink MQTT check failed, retry = %d\n", iot_retry);
         iot_retry++;
     }
     if (iot_retry >= IOT_RETRY_MAX) {

@@ -16,6 +16,7 @@
 
 #define CHECK_INTERVAL 10000
 #define MESSAGE_BUFFER_SIZE 10
+#define MQTT_CONNECT_RETRY_MAX 3
 
 static const char *deviceName = NULL;
 static const char *productKey = NULL;
@@ -105,6 +106,7 @@ static void callback(char *topic, byte *payload, unsigned int length) {
 static bool mqttConnecting = false;
 int AliyunIoTSDK::mqttCheckConnect() {
     int mqttStatus = 0;
+    int connectRetry = 0;
 
     Serial.println("INFO:\tAlink MQTT connection checking...");
 
@@ -112,6 +114,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
         Serial.print("INFO:\tAlink MQTT client state = ");
         Serial.println(client->state());
         if (MQTT_CONNECTED != client->state()) {
+            connectRetry = 0;
             while (false == client->connected()) {
                 client->disconnect();
                 Serial.print("INFO:\tConnecting to MQTT Server, clientId = ");
@@ -124,10 +127,17 @@ int AliyunIoTSDK::mqttCheckConnect() {
                 if (client->connect(clientId, mqttUsername, mqttPwd)) {
                     Serial.println("INFO:\tMQTT Connected!");
                 } else {
-                    Serial.print("ERROR:\tMQTT Connect err:");
+                    Serial.print("ERROR:\tMQTT Connect err: ");
                     Serial.println(client->state());
-                    delay(60000);
+                    delay(10000);
+                    connectRetry++;
+                    Serial.print("INFO:\tretry: ");
+                    Serial.println(connectRetry);
                     mqttStatus = -1;
+                    if (connectRetry > MQTT_CONNECT_RETRY_MAX) {
+                        Serial.println("ERROR:\t max connect retry times reached");
+                        break;
+                    }
                 }
                 mqttConnecting = false;
             }

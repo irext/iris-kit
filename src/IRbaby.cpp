@@ -74,8 +74,7 @@ void setup() {
     pinMode(0, OUTPUT);
     digitalWrite(0, LOW);
     attachInterrupt(digitalPinToInterrupt(RESET_PIN), factoryReset, ONLOW);
-
-    delay(10);
+    delay(3000);
 
     Serial.clearWriteError();
     INFOLN();
@@ -88,13 +87,20 @@ void setup() {
     INFOLN("== IRIS Kit [1.2.7] Powered by IRBaby ==");
 
     // try loading saved iriskit settings
+    iriskit_settings.credential_token.clear();
+    iriskit_settings.server_address.clear();
+
     if (loadSettings()) {
         iriskit_settings = getIrisKitSettings();
-        INFOF("saved credentials loaded, token = %s\n",
-            iriskit_settings.credential_token.c_str());
+        INFOLN("saved credentials loaded");
+        INFOF("server address is empty ? %s\n", iriskit_settings.server_address.isEmpty() ? "yes" : "no");
+        INFOF("credential is empty ? %s\n", iriskit_settings.credential_token.isEmpty() ? "yes" : "no");
+    }
+    if (!iriskit_settings.credential_token.isEmpty() &&
+        !iriskit_settings.credential_token.equalsIgnoreCase("NULL") &&
+        !iriskit_settings.server_address.isEmpty() &&
+        !iriskit_settings.server_address.equalsIgnoreCase("NULL")) {
         iriskit_settings_loaded = true;
-    } else {
-        INFOLN("no credentials saved yet, request new from IRIS server");
     }
 
     // custom parameter for iris credentials
@@ -105,6 +111,7 @@ void setup() {
     memset(iris_credential_token, 0, CREDENTIAL_MAX);
 
     if (!iriskit_settings_loaded) {
+        INFOLN("iriskit settings not loaded, set it from WifiManager");
         server_address =
             new WiFiManagerParameter("server_address", "Server Address", "", URL_SHORT_MAX);
         credential_token =
@@ -117,6 +124,7 @@ void setup() {
         wifi_manager.addParameter(server_address);
         wifi_manager.addParameter(credential_token);
     } else {
+        INFOLN("iriskit settings loaded");
         strcpy(iris_server_address, iriskit_settings.server_address.c_str());
         strcpy(iris_credential_token, iriskit_settings.credential_token.c_str());
     }
@@ -134,6 +142,8 @@ void setup() {
         delete credential_token;
     }
 
+    // TODO: fix the logic without settings loaded
+
     INFOF("Wifi Connected, IRIS server = %s, credential token = %s\n",
           iris_server_address, iris_credential_token);
 
@@ -149,9 +159,9 @@ void setup() {
         credential_init_retry++;
         if (credential_init_retry >= CREDENTIAL_INIT_RETRY_MAX) {
             ERRORLN("retried fetch credential for 3 times, reset WiFi");
-            factoryReset();
+            wifiReset();
         }
-        delay(1000);
+        delay(2000);
     } while (1);
 
     INFOF("credential get : %s\n", iris_credential_token);
@@ -184,7 +194,7 @@ void factoryReset() {
     }
     last_interrupt_time = interrupt_time;
     if (end_time - start_time > 3000) {
-        factoryReset();
+        wifiReset();
     }
 }
 
@@ -192,8 +202,13 @@ void factoryReset() {
 
 // private function defitions
 static void wifiReset() {
-    DEBUGLN("\nReset settings");
-    wifi_manager.resetSettings();
+    DEBUGLN("Reset settings");
     LittleFS.format();
+    wifi_manager.resetSettings();
+    WiFi.mode(WIFI_AP_STA); // cannot erase if not in STA mode !
+    WiFi.persistent(true);
+    WiFi.disconnect(true);
+    WiFi.persistent(false);
+    delay(2000);
     ESP.reset();
 }
