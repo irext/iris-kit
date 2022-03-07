@@ -199,7 +199,6 @@ void factoryReset() {
 }
 
 
-
 // private function defitions
 static void wifiReset() {
     DEBUGLN("Reset settings");
