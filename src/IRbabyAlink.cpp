@@ -37,9 +37,10 @@ String g_product_key = "";
 String g_device_name = "";
 String g_device_secret = "";
 String g_region_id = "cn-shanghai";
+String g_upstream_topic = "";
+int g_app_id = 0;
 
 static AliyunIoTSDK iot;
-static char IRIS_UPSTREAM_TOPIC[TOPIC_NAME_MAX] = { 0 };
 static ep_state_t endpoint_state = FSM_IDLE;
 
 static void registerCallback();
@@ -55,8 +56,7 @@ void connectToAliyunIoT() {
     iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
               g_region_id.c_str());
     INFOLN("Aliyun IoT connect done");
-    snprintf(IRIS_UPSTREAM_TOPIC, TOPIC_NAME_MAX - 1, "/%s/%s/user/iris/upstream",
-             g_product_key.c_str(), g_device_name.c_str());
+    g_upstream_topic = g_product_key + "/" + g_device_name + "/user/iris/upstream";
     registerCallback();
 }
 

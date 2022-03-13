@@ -33,6 +33,10 @@
 #define DOWNLOAD_SUFFIX              ".bin"
 
 
+// IRIS communication
+#define EVENT_NAME_CONNECT           "__connect"
+#define EVENT_HEART_BEAT_REQ         "__hb_request"
+
 int getIRISKitVersion(char *buffer, int buffer_size);
 
 int getDeviceID(char* buffer, int buffer_size);
@@ -40,7 +44,8 @@ int getDeviceID(char* buffer, int buffer_size);
 int fetchIrisCredential(String credential_token,
                         String& product_key,
                         String& device_name,
-                        String& device_secret);
+                        String& device_secret,
+                        int& app_id);
 
 void sendIrisKitConnect();
 

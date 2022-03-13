@@ -31,17 +31,34 @@
 #include "defines.h"
 #include "IRbabyGlobal.h"
 #include "IRbabySerial.h"
+#include "IRbabyAlink.h"
 #include "IRbabyHttp.h"
 
 #include "IRBabyIRIS.h"
 
+
 extern StaticJsonDocument<1024> http_request_doc;
 extern StaticJsonDocument<1024> http_response_doc;
+extern StaticJsonDocument<1024> iris_msg_doc;
+extern StaticJsonDocument<1024> iris_ind_doc;
+
+extern String g_product_key;
+extern String g_device_name;
+extern String g_upstream_topic;
+extern int g_app_id;
 
 char iris_credential_token[CREDENTIAL_MAX] = { 0 };
 char iris_server_address[URL_SHORT_MAX] = { 0 };
 
 
+
+// private function declarations
+static String buildConnect();
+
+static String buildHeartBeat();
+
+
+// public function definitions
 int getIRISKitVersion(char *buffer, int buffer_size) {
     if (NULL == buffer) {
         return -1;
@@ -64,17 +81,17 @@ int getDeviceID(char* buffer, int buffer_size) {
 int fetchIrisCredential(String credential_token,
                         String& product_key,
                         String& device_name,
-                        String& device_secret) {
+                        String& device_secret,
+                        int& app_id) {
     int ret = -1;
     int tsi = -1;
     bool protocol_prefix = false;
     String fetch_credential_url;
     String request_data = "";
     String response_data = "";
-
+    String device_id("IRbaby_");
     http_error_t http_ret = HTTP_ERROR_GENERIC;
 
-    String device_id("IRbaby_");
     if (NULL != strstr(iris_server_address, "http://")) {
         protocol_prefix = true;
     }
@@ -109,12 +126,11 @@ int fetchIrisCredential(String credential_token,
     if (HTTP_ERROR_SUCCESS == http_ret) {
         http_response_doc.clear();
         if (OK == deserializeJson(http_response_doc, response_data.c_str())) {
-            String ds = "";
             int resultCode = http_response_doc["status"]["code"];
             if (0 == resultCode) {
                 INFOLN("response valid, try getting entity");
-                ds = (String) http_response_doc["entity"];
-                device_secret = ds;
+                device_secret = (String) http_response_doc["entity"]["deviceSecret"];
+                app_id = (int) http_response_doc["entity"]["appId"];
                 INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
                     product_key.c_str(), device_name.c_str(), device_secret.c_str());
                 ret = 0;
@@ -128,9 +144,38 @@ int fetchIrisCredential(String credential_token,
 }
 
 void sendIrisKitConnect() {
-
+    String connectMessage = buildConnect();
+    sendRawData(g_upstream_topic.c_str(), (uint8_t*) connectMessage.c_str(), connectMessage.length());
 }
 
 void sendIrisKitHeartBeat() {
+    String heartBeatMessage = buildHeartBeat();
+    sendRawData(g_upstream_topic.c_str(), (uint8_t*) heartBeatMessage.c_str(), heartBeatMessage.length());
+}
 
+
+// private function definitions
+static String buildConnect() {
+    String connectMessage = "";
+
+    iris_msg_doc.clear();
+    iris_msg_doc["eventName"] = String(EVENT_NAME_CONNECT);
+    iris_msg_doc["productKey"] = g_product_key;
+    iris_msg_doc["deviceName"] = g_device_name;
+    serializeJson(iris_msg_doc, connectMessage);
+
+    return connectMessage;
+}
+
+static String buildHeartBeat() {
+    String heartBeatMessage = "";
+
+    iris_msg_doc.clear();
+    iris_msg_doc["eventName"] = String(EVENT_HEART_BEAT_REQ);
+    iris_msg_doc["productKey"] = g_product_key;
+    iris_msg_doc["deviceName"] = g_device_name;
+    iris_msg_doc["appId"] = g_app_id;
+    serializeJson(iris_msg_doc, heartBeatMessage);
+
+    return heartBeatMessage;
 }

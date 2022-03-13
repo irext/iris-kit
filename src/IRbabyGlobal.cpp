@@ -24,6 +24,8 @@
 #include "IRbabyGlobal.h"
 #include "defines.h"
 
+StaticJsonDocument<1024> iris_msg_doc;
+StaticJsonDocument<1024> iris_ind_doc;
 StaticJsonDocument<1024> recv_msg_doc;
 StaticJsonDocument<1024> send_msg_doc;
 StaticJsonDocument<1024> http_request_doc;

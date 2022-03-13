@@ -48,6 +48,7 @@ extern char iris_credential_token[];
 extern String g_product_key;
 extern String g_device_name;
 extern String g_device_secret;
+extern int g_app_id;
 
 
 // public variable definitions
@@ -153,7 +154,8 @@ void setup() {
             if (0 == fetchIrisCredential(iris_credential_token,
                                          g_product_key,
                                          g_device_name,
-                                         g_device_secret)) {
+                                         g_device_secret,
+                                         g_app_id)) {
                 break;
             }
         }
