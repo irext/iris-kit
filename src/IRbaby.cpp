@@ -38,7 +38,8 @@
 
 #include "IRbaby.h"
 
-#define CREDENTIAL_INIT_RETRY_MAX  (3)
+#define CREDENTIAL_INIT_RETRY_MAX     (3)
+#define SYSTEM_DELAY                  (2000)
 
 // external variable declarations
 extern char iris_server_address[];
@@ -74,7 +75,7 @@ void setup() {
     pinMode(0, OUTPUT);
     digitalWrite(0, LOW);
     attachInterrupt(digitalPinToInterrupt(RESET_PIN), factoryReset, ONLOW);
-    delay(3000);
+    delay(SYSTEM_DELAY);
 
     Serial.clearWriteError();
     INFOLN();
@@ -161,7 +162,7 @@ void setup() {
             ERRORLN("retried fetch credential for 3 times, reset WiFi");
             wifiReset();
         }
-        delay(2000);
+        delay(SYSTEM_DELAY);
     } while (1);
 
     INFOF("credential get : %s\n", iris_credential_token);
@@ -171,7 +172,7 @@ void setup() {
 
     saveSettings();
 
-    delay(1000);
+    delay(SYSTEM_DELAY);
     connectToAliyunIoT();
     loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
 
@@ -208,6 +209,6 @@ static void wifiReset() {
     WiFi.persistent(true);
     WiFi.disconnect(true);
     WiFi.persistent(false);
-    delay(2000);
+    delay(SYSTEM_DELAY);
     ESP.reset();
 }

@@ -28,6 +28,7 @@
 #include "IRbabyGlobal.h"
 #include "IRbabySerial.h"
 #include "IRbabyUserSettings.h"
+#include "IRbabyIRIS.h"
 #include "IRbabyHttp.h"
 
 #include "IRbabyIR.h"
@@ -71,8 +72,10 @@ bool sendIR(String file_name) {
 
 void sendStatus(String file, t_remote_ac_status status) {
     String save_path = SAVE_PATH + file;
+    String url = String(DOWNLOAD_PREFIX) + file + String(DOWNLOAD_SUFFIX);
+
     if (!LittleFS.exists(save_path)) {
-        downLoadFile(file, SAVE_PATH);
+        downLoadFile(url, file, SAVE_PATH);
     }
 
     if (LittleFS.exists(save_path)) {

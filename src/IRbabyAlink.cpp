@@ -98,7 +98,3 @@ static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
     INFO(", length = ");
     INFOLN(length);
 }
-
-static void sendIrisKitHeartBeat() {
-
-}

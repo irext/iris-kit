@@ -24,10 +24,26 @@
 #ifndef IRBABY_IRIS_H
 #define IRBABY_IRIS_H
 
-#define CREDENTIAL_MAX   (40)
+#define CREDENTIAL_MAX               (40)
+
+// web http call URL list
+#define FETCH_CREDENTIAL_SUFFIX      "/irext-collect/credentials/fetch_credential"
+#define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
+#define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
+#define DOWNLOAD_SUFFIX              ".bin"
+
 
 int getIRISKitVersion(char *buffer, int buffer_size);
 
 int getDeviceID(char* buffer, int buffer_size);
+
+int fetchIrisCredential(String credential_token,
+                        String& product_key,
+                        String& device_name,
+                        String& device_secret);
+
+void sendIrisKitConnect();
+
+void sendIrisKitHeartBeat();
 
 #endif // IRBABY_IRIS_H

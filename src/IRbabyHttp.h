@@ -26,15 +26,23 @@
 
 #include <WString.h>
 
-#define URL_SHORT_MAX  (128)
+#define URL_SHORT_MAX   (128)
+
+typedef enum {
+    HTTP_ERROR_SUCCESS = 0,
+    HTTP_ERROR_RESPONSE = 1,
+    HTTP_ERROR_PAYLOAD = 2,
+    HTTP_ERROR_BUSINESS = 3,
+    HTTP_ERROR_LOCAL_SPACE = 4,
+    HTTP_ERROR_GENERIC = 7,
+    HTTP_ERROR_MAX = 15,
+} http_error_t;
 
 
-int fetchIrisCredential(String credential_token,
-                        String& product_key,
-                        String& device_name,
-                        String& device_secret);
+// public function export
+http_error_t httpPost(String url, String request_data, String& result);
 
-void downLoadFile(String file, String path);
+http_error_t downLoadFile(String url, String file, String path);
 
 
 #endif // IRBABY_HTTP_H

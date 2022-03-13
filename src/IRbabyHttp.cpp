@@ -34,115 +34,72 @@
 
 #include "IRbabyHttp.h"
 
-#define FETCH_CREDENTIAL_SUFFIX      "/irext-collect/credentials/fetch_credential"
-#define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
-#define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
-#define DOWNLOAD_SUFFIX              ".bin"
+#define HTTP_REQUEST_MAX_RETRY        (5)
+#define HTTP_REQUEST_RETRY_INTERVAL   (200)
 
-
-extern StaticJsonDocument<1024> http_request_doc;
-extern StaticJsonDocument<1024> http_response_doc;
-
-
-char iris_server_address[URL_SHORT_MAX] = { 0 };
-
-
-int fetchIrisCredential(String credential_token,
-                        String& product_key,
-                        String& device_name,
-                        String& device_secret) {
-    int ret = -1;
-    bool protocol_prefix = false;
-    String fetch_credential_url;
-
-    String device_id("IRbaby_");
-    if (NULL != strstr(iris_server_address, "http://")) {
-        protocol_prefix = true;
-    }
-    if (protocol_prefix) {
-        fetch_credential_url = String(iris_server_address);
-    } else {
-        fetch_credential_url = String("http://");
-        fetch_credential_url.concat(iris_server_address);
-    }
-
-    HTTPClient http_client;
-    int tsi = 0;
+http_error_t httpPost(String url, String request_data, String& result) {
+    http_error_t ret = HTTP_ERROR_GENERIC;
     int response_code = 0;
-    fetch_credential_url.concat(String(FETCH_CREDENTIAL_SUFFIX));
-    device_id.concat(String(ESP.getChipId(), HEX));
-
-    INFOF("fetch credential URL = %s\n", fetch_credential_url.c_str());
-    if (credential_token.isEmpty()) {
-        ERRORLN("credential token is empty");
-        return -1;
-    }
-    tsi = credential_token.indexOf(",");
-    if (-1 == tsi) {
-        ERRORLN("credential token format error");
-        return -1;
-    }
-    product_key = credential_token.substring(0, tsi);
-    device_name = credential_token.substring(tsi + 1);
-
-    http_client.begin(wifi_client, fetch_credential_url);
+    HTTPClient http_client;
+    http_client.begin(wifi_client, url);
     http_client.addHeader("Content-Type", "application/json");
-    http_request_doc.clear();
-    http_request_doc["deviceID"] = device_id;
-    http_request_doc["credentialToken"] = credential_token;
-    String request_data = "";
-    serializeJson(http_request_doc, request_data);
+    bool request_flag = false;
 
-    response_code = http_client.POST(request_data);
-    if (200 == response_code) {
-        INFOF("HTTP response code = %d\n", response_code);
-        String payload = http_client.getString();
-        INFOF("HTTP response payload = %s\n", payload.c_str());
-        http_response_doc.clear();
-        if (OK == deserializeJson(http_response_doc, payload.c_str())) {
-            String ds = "";
-            int resultCode = http_response_doc["status"]["code"];
-            if (0 == resultCode) {
-                INFOLN("response valid, try getting entity");
-                ds = (String) http_response_doc["entity"];
-                device_secret = ds;
-                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
-                    product_key.c_str(), device_name.c_str(), device_secret.c_str());
-                ret = 0;
-            } else {
-                INFOF("response invalid, code = %d\n", resultCode);
-            }
+    for (int http_retry = 0; http_retry < HTTP_REQUEST_MAX_RETRY; http_retry++) {
+        response_code = http_client.POST(request_data);
+        if (HTTP_CODE_OK == response_code) {
+            INFOF("HTTP response OK : %d\n", response_code);
+            String payload = http_client.getString();
+            result = payload;
+            request_flag = true;
+            break;
+        } else {
+            ERRORF("HTTP response ERROR : %d\n", response_code);
+            delay(HTTP_REQUEST_RETRY_INTERVAL);
         }
     }
+    if (request_flag) {
+        ret = HTTP_ERROR_SUCCESS;
+    }
     http_client.end();
-
     return ret;
 }
 
-void downLoadFile(String file, String path) {
+http_error_t downLoadFile(String url, String file, String path) {
+    http_error_t ret = HTTP_ERROR_GENERIC;
     HTTPClient http_client;
-    String download_url = DOWNLOAD_PREFIX + file + DOWNLOAD_SUFFIX;
+    int response_code = 0;
     String save_path = path + file;
     File cache = LittleFS.open(save_path, "w");
     bool download_flag = false;
+
     if (cache) {
-        http_client.begin(wifi_client, download_url);
-        for (int i = 0; i < 5; i++) {
-            if (http_client.GET() == HTTP_CODE_OK) {
+        http_client.begin(wifi_client, url);
+        for (int http_retry = 0; http_retry < HTTP_REQUEST_MAX_RETRY; http_retry++) {
+            response_code = http_client.GET();
+            if (HTTP_CODE_OK == response_code) {
                 download_flag = true;
                 break;
+            } else {
+                ERRORF("HTTP response ERROR : %d\n", response_code);
+                delay(HTTP_REQUEST_RETRY_INTERVAL);
             }
-            delay(200);
         }
         if (download_flag) {
             http_client.writeToStream(&cache);
+            ret = HTTP_ERROR_SUCCESS;
             DEBUGF("Download %s success\n", file.c_str());
         } else {
             LittleFS.remove(save_path);
+            ret = HTTP_ERROR_GENERIC;
             ERRORF("Download %s failed\n", file.c_str());
         }
-    } else
+    } else {
+        ret = HTTP_ERROR_LOCAL_SPACE;
         ERRORLN("Don't have enough file zoom");
+    }
     cache.close();
     http_client.end();
+
+    return ret;
 }

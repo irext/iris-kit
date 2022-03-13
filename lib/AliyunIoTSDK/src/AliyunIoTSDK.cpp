@@ -35,6 +35,8 @@ DeviceProperty PropertyMessageBuffer[MESSAGE_BUFFER_SIZE];
 #define SHA256HMAC_SIZE 32
 #define DATA_CALLBACK_SIZE 20
 
+#define MQTT_WAIT_GENERIC  (10000)
+
 #define ALINK_BODY_FORMAT "{\"id\":\"123\",\"version\":\"1.0\",\"method\":\"thing.event.property.post\",\"params\":%s}"
 #define ALINK_EVENT_BODY_FORMAT "{\"id\": \"123\",\"version\": \"1.0\",\"params\": %s,\"method\": \"thing.event.%s.post\"}"
 
@@ -129,7 +131,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
                 } else {
                     Serial.print("ERROR:\tMQTT Connect err: ");
                     Serial.println(client->state());
-                    delay(10000);
+                    delay(MQTT_WAIT_GENERIC);
                     connectRetry++;
                     Serial.print("INFO:\tretry: ");
                     Serial.println(connectRetry);
