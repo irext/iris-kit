@@ -64,11 +64,11 @@ public:
    * @param _deviceSecret : AliyunIoT device secret
    * @param _region : AliyunIoT region
    */
-  static void begin(Client &espClient,
-                    const char *_productKey,
-                    const char *_deviceName,
-                    const char *_deviceSecret,
-                    const char *_region);
+  static int begin(Client &espClient,
+                   const char *_productKey,
+                   const char *_deviceName,
+                   const char *_deviceSecret,
+                   const char *_region);
 
   /**
    * Send data
@@ -135,8 +135,17 @@ public:
   static void sendCustomData(const char *topic, const uint8_t *data, int length);
 
   /**
+   * Subscribe MQTT topic for Aliot
+   *
+   * @param topic : topic in string
+   * @param qos : MQTT qos param
+   * @return if succeeded
+   */
+  static boolean subscribe(const char* topic, int qos);
+
+  /**
    * Register customized MQTT message callback
-   * 
+   *
    * @param callback : callback pointer
    */
   static void registerCustomCallback(MQTT_CALLBACK_SIGNATURE);

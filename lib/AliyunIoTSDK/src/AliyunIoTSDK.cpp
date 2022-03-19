@@ -148,7 +148,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
     return mqttStatus;
 }
 
-void AliyunIoTSDK::begin(Client &espClient,
+int AliyunIoTSDK::begin(Client &espClient,
                          const char *_productKey,
                          const char *_deviceName,
                          const char *_deviceSecret,
@@ -189,7 +189,7 @@ void AliyunIoTSDK::begin(Client &espClient,
     client->setCallback(callback);
 #endif
 
-    mqttCheckConnect();
+    return mqttCheckConnect();
 }
 
 int AliyunIoTSDK::loop() {
@@ -234,6 +234,10 @@ void AliyunIoTSDK::sendCustomData(const char *topic, const uint8_t *data, int le
     boolean d = client->publish(topic, data, length);
     Serial.print("publish:0 sucessfully:");
     Serial.println(d);
+}
+
+boolean AliyunIoTSDK::subscribe(const char* topic, int qos) {
+    return client->subscribe(topic, qos);
 }
 
 void AliyunIoTSDK::registerCustomCallback(MQTT_CALLBACK_SIGNATURE) {

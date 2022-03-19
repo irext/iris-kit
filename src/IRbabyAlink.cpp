@@ -26,6 +26,7 @@
 
 #include "IRbabySerial.h"
 #include "IRbabyAlink.h"
+#include "IRbabyIRIS.h"
 #include "IRbabyGlobal.h"
 
 #include "IRbaby.h"
@@ -38,26 +39,31 @@ String g_device_name = "";
 String g_device_secret = "";
 String g_region_id = "cn-shanghai";
 String g_upstream_topic = "";
+String g_downstream_topic = "";
 int g_app_id = 0;
 
+
+static bool downstream_topic_subscribed = false;
 static AliyunIoTSDK iot;
 static ep_state_t endpoint_state = FSM_IDLE;
 
-static void registerCallback();
+static void registerCallback(const char* topic, int qos);
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length);
 
 static int iot_retry = 0;
 
-static void sendIrisKitHeartBeat();
-
 void connectToAliyunIoT() {
+    downstream_topic_subscribed = false;
     INFOF("Try connecting to Aliyun IoT : %s, %s, %s, %s\n",
           g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
-    iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
-              g_region_id.c_str());
+
+    if (0 == iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
+              g_region_id.c_str())) {
+        sendIrisKitConnect();
+    }
     INFOLN("Aliyun IoT connect done");
     g_upstream_topic = g_product_key + "/" + g_device_name + "/user/iris/upstream";
-    registerCallback();
+    g_downstream_topic = g_product_key + "/" + g_device_name + "/user/iris/downstream";
 }
 
 void checkAlinkMQTT() {
@@ -66,7 +72,12 @@ void checkAlinkMQTT() {
 
     if (0 == mqttStatus) {
         iot_retry = 0;
-        sendIrisKitHeartBeat();
+        if (false == downstream_topic_subscribed) {
+            registerCallback(g_downstream_topic.c_str(), 0);
+            downstream_topic_subscribed = true;
+        } else {
+            sendIrisKitHeartBeat();
+        }
     } else {
         INFOF("Alink MQTT check failed, retry = %d\n", iot_retry);
         iot_retry++;
@@ -86,15 +97,13 @@ AliyunIoTSDK getSession() {
     return iot;
 }
 
-static void registerCallback() {
-    iot.registerCustomCallback(irisAlinkCallback);
+static void registerCallback(const char* topic, int qos) {
+    if (iot.subscribe(topic, qos)) {
+        INFOLN("topic subscribed");
+        iot.registerCustomCallback(irisAlinkCallback);
+    }
 }
 
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
-    INFO("IRIS Alink callback triggerd : topic = ");
-    INFO(topic);
-    INFO(", data = ");
-    INFO((char*)data);
-    INFO(", length = ");
-    INFOLN(length);
+    INFOF("IRIS downstream message : topic = %s, length = %d, data = %s\n", topic, length, (char*) data);
 }
