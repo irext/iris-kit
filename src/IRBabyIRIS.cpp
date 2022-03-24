@@ -153,6 +153,10 @@ void sendIrisKitHeartBeat() {
     sendRawData(g_upstream_topic.c_str(), (uint8_t*) heartBeatMessage.c_str(), heartBeatMessage.length());
 }
 
+void handleIrisKitMessage(const char* data, int length) {
+
+}
+
 
 // private function definitions
 static String buildConnect() {

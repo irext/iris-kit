@@ -106,4 +106,7 @@ static void registerCallback(const char* topic, int qos) {
 
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
     INFOF("IRIS downstream message : topic = %s, length = %d, data = %s\n", topic, length, (char*) data);
+    if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
+        handleIrisKitMessage((const char*) data, length);
+    }
 }

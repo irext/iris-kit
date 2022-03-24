@@ -145,7 +145,6 @@ void setup() {
     }
 
     // TODO: fix the logic without settings loaded
-
     INFOF("Wifi Connected, IRIS server = %s, credential token = %s\n",
           iris_server_address, iris_credential_token);
 
@@ -200,7 +199,6 @@ void factoryReset() {
         wifiReset();
     }
 }
-
 
 // private function defitions
 static void wifiReset() {

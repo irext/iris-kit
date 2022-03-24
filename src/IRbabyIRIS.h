@@ -51,4 +51,6 @@ void sendIrisKitConnect();
 
 void sendIrisKitHeartBeat();
 
+void handleIrisKitMessage(const char* data, int length);
+
 #endif // IRBABY_IRIS_H
