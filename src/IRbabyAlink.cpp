@@ -31,8 +31,15 @@
 
 #include "IRbaby.h"
 
-#define TOPIC_NAME_MAX    (64)
-#define IOT_RETRY_MAX     (3)
+#define TOPIC_NAME_MAX         (64)
+#define IOT_RETRY_MAX          (3)
+
+#define IRIS_KIT_PK_DEV        "a1WlzsJh50b"
+#define IRIS_KIT_PK_REL        "a1ihYt1lqGH"
+#define TOPIC_DOWNSTREAM_DEV   "/user/iris/downstream_dev"
+#define TOPIC_UPSTREAM_DEV     "/user/iris/upstream_dev"
+#define TOPIC_DOWNSTREAM_REL   "/user/iris/downstream"
+#define TOPIC_UPSTREAM_REL     "/user/iris/upstream"
 
 String g_product_key = "";
 String g_device_name = "";
@@ -54,6 +61,18 @@ static int iot_retry = 0;
 
 void connectToAliyunIoT() {
     downstream_topic_subscribed = false;
+
+    if (g_product_key.equals(IRIS_KIT_PK_DEV)) {
+        g_upstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_UPSTREAM_DEV;
+        g_downstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_DOWNSTREAM_DEV;
+    } else if (g_product_key.equals(IRIS_KIT_PK_REL)) {
+        g_upstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_UPSTREAM_REL;
+        g_downstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_DOWNSTREAM_REL;
+    } else {
+        ERRORF("IRIS Kit release key is not supported yet\n");
+        return;
+    }
+
     INFOF("Try connecting to Aliyun IoT : %s, %s, %s, %s\n",
           g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_region_id.c_str());
 
@@ -62,8 +81,7 @@ void connectToAliyunIoT() {
         sendIrisKitConnect();
     }
     INFOLN("Aliyun IoT connect done");
-    g_upstream_topic = g_product_key + "/" + g_device_name + "/user/iris/upstream";
-    g_downstream_topic = g_product_key + "/" + g_device_name + "/user/iris/downstream";
+    
 }
 
 void checkAlinkMQTT() {
@@ -73,6 +91,7 @@ void checkAlinkMQTT() {
     if (0 == mqttStatus) {
         iot_retry = 0;
         if (false == downstream_topic_subscribed) {
+            INFOF("subscribe topic : %s\n", g_downstream_topic.c_str());
             registerCallback(g_downstream_topic.c_str(), 0);
             downstream_topic_subscribed = true;
         } else {
@@ -105,7 +124,7 @@ static void registerCallback(const char* topic, int qos) {
 }
 
 static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
-    INFOF("IRIS downstream message : topic = %s, length = %d, data = %s\n", topic, length, (char*) data);
+    INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
     if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
         handleIrisKitMessage((const char*) data, length);
     }

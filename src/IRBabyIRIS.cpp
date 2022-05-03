@@ -51,12 +51,24 @@ char iris_credential_token[CREDENTIAL_MAX] = { 0 };
 char iris_server_address[URL_SHORT_MAX] = { 0 };
 
 
-
 // private function declarations
+static int processEvent(const char* event_name, const char* payload, int length);
 static String buildConnect();
-
 static String buildHeartBeat();
+static int handleHartBeat(const char* payload, int length);
+static int handleEmit(const char* payload, int length);
 
+// private variable definitions
+event_handler_t event_handler_table[] = {
+    {
+        "__hb_response",
+        handleHartBeat,
+    },
+    {
+        "__emmitCode",
+        handleEmit,
+    }
+};
 
 // public function definitions
 int getIRISKitVersion(char *buffer, int buffer_size) {
@@ -154,11 +166,37 @@ void sendIrisKitHeartBeat() {
 }
 
 void handleIrisKitMessage(const char* data, int length) {
+    int ret = 0;
+    char* payload = (char*) malloc(length + 1);
+    if (NULL != payload) {
+        strncpy(payload, data, length);
+        payload[length] = '\0';
+        INFOF("--> %s\n", payload);
+        if (OK == deserializeJson(iris_ind_doc, payload)) {
+            String event_name = iris_ind_doc["eventName"];
+            INFOF("received ind : %s\n", event_name.c_str());
+            ret = processEvent(event_name.c_str(), payload, length);
+            INFOF("event handle result = %d\n", ret);
+        }
+    }
 
+    if (NULL != payload) {
+        free(payload);
+    }
 }
 
 
 // private function definitions
+static int processEvent(const char* event_name, const char* payload, int length) {
+    int event_table_length = sizeof(event_handler_table) / sizeof(event_handler_table[0]);
+    for (int i = 0; i < event_table_length; i++) {
+        if (0 == strcmp(event_name, event_handler_table[i].event_name)) {
+            return event_handler_table[i].handler(payload, length);
+        }
+    }
+    return -1;
+}
+
 static String buildConnect() {
     String connectMessage = "";
 
@@ -182,4 +220,19 @@ static String buildHeartBeat() {
     serializeJson(iris_msg_doc, heartBeatMessage);
 
     return heartBeatMessage;
+}
+
+static int handleHartBeat(const char* payload, int length) {
+    // TODO:
+    // do nothing currently
+    (void) payload;
+    (void) length;
+    return 0;
+}
+
+static int handleEmit(const char* payload, int length) {
+    // TODO:
+    (void) payload;
+    (void) length;
+    return 0;
 }
