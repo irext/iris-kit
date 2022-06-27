@@ -81,22 +81,22 @@ http_error_t downLoadFile(String url, String file, String path) {
                 download_flag = true;
                 break;
             } else {
-                ERRORF("HTTP response ERROR : %d\n", response_code);
+                ERRORF("http response error : %d\n", response_code);
                 delay(HTTP_REQUEST_RETRY_INTERVAL);
             }
         }
         if (download_flag) {
             http_client.writeToStream(&cache);
             ret = HTTP_ERROR_SUCCESS;
-            DEBUGF("Download %s success\n", file.c_str());
+            DEBUGF("download %s successfully\n", file.c_str());
         } else {
             LittleFS.remove(save_path);
             ret = HTTP_ERROR_GENERIC;
-            ERRORF("Download %s failed\n", file.c_str());
+            ERRORF("download %s failed\n", file.c_str());
         }
     } else {
         ret = HTTP_ERROR_LOCAL_SPACE;
-        ERRORLN("Don't have enough file zoom");
+        ERRORLN("there is not enough storage space for file");
     }
     cache.close();
     http_client.end();

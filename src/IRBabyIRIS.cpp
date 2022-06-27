@@ -65,7 +65,7 @@ event_handler_t event_handler_table[] = {
         handleHartBeat,
     },
     {
-        "__emmitCode",
+        "__emitCode",
         handleEmit,
     }
 };

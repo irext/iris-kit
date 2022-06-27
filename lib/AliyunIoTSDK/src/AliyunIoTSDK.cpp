@@ -188,7 +188,7 @@ int AliyunIoTSDK::begin(Client &espClient,
 #if defined USE_STANDARD_THING_MODEL_TOPIC
     client->setCallback(callback);
 #endif
-
+    Serial.print("connection check in begin\n");
     return mqttCheckConnect();
 }
 
@@ -197,6 +197,7 @@ int AliyunIoTSDK::loop() {
     client->loop();
     if (millis() - lastMs >= CHECK_INTERVAL) {
         lastMs = millis();
+        Serial.print("connection check in loop\n");
         mqttStatus = mqttCheckConnect();
     }
     Serial.print("MQTT connect return: ");

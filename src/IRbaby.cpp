@@ -105,6 +105,8 @@ void setup() {
         iriskit_settings_loaded = true;
     }
 
+    INFOF("iriskit_settings_loaded ? %s\n", iriskit_settings_loaded ? "yes" : "no");
+
     // custom parameter for iris credentials
     WiFiManagerParameter* server_address = NULL;
     WiFiManagerParameter* credential_token = NULL;

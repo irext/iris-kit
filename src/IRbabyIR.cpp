@@ -33,7 +33,7 @@
 
 #include "IRbabyIR.h"
 
-#define SAVE_PATH     "/bin/"
+#define SAVE_PATH     "/ir/"
 
 decode_results results; // Somewhere to store the results
 const uint8_t kTimeout = 50;
