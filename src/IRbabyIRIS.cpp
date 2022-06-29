@@ -34,7 +34,7 @@
 #include "IRbabyAlink.h"
 #include "IRbabyHttp.h"
 
-#include "IRBabyIRIS.h"
+#include "IRbabyIRIS.h"
 
 
 extern StaticJsonDocument<1024> http_request_doc;
