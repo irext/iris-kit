@@ -41,6 +41,7 @@ extern StaticJsonDocument<1024> http_request_doc;
 extern StaticJsonDocument<1024> http_response_doc;
 extern StaticJsonDocument<1024> iris_msg_doc;
 extern StaticJsonDocument<1024> iris_ind_doc;
+extern StaticJsonDocument<1024> emit_code_doc;
 
 extern String g_product_key;
 extern String g_device_name;
@@ -52,11 +53,11 @@ char iris_server_address[URL_SHORT_MAX] = { 0 };
 
 
 // private function declarations
-static int processEvent(const char* event_name, const char* payload, int length);
+static int processEvent(String event_name, String product_key, String device_name, String content);
 static String buildConnect();
 static String buildHeartBeat();
-static int handleHartBeat(const char* payload, int length);
-static int handleEmit(const char* payload, int length);
+static int handleHartBeat(String product_key, String device_name, String content);
+static int handleEmit(String product_key, String device_name, String content);
 
 // private variable definitions
 event_handler_t event_handler_table[] = {
@@ -137,7 +138,7 @@ int fetchIrisCredential(String credential_token,
 
     if (HTTP_ERROR_SUCCESS == http_ret) {
         http_response_doc.clear();
-        if (OK == deserializeJson(http_response_doc, response_data.c_str())) {
+        if (OK == deserializeJson(http_response_doc, response_data)) {
             int resultCode = http_response_doc["status"]["code"];
             if (0 == resultCode) {
                 INFOLN("response valid, try getting entity");
@@ -168,14 +169,18 @@ void sendIrisKitHeartBeat() {
 void handleIrisKitMessage(const char* data, int length) {
     int ret = 0;
     char* payload = (char*) malloc(length + 1);
+    char* payload_json = payload;
     if (NULL != payload) {
         strncpy(payload, data, length);
         payload[length] = '\0';
         INFOF("--> %s\n", payload);
-        if (OK == deserializeJson(iris_ind_doc, payload)) {
+        if (OK == deserializeJson(iris_ind_doc, payload_json)) {
             String event_name = iris_ind_doc["eventName"];
+            String product_key = iris_ind_doc["productKey"];
+            String device_name = iris_ind_doc["deviceName"];
+            String content = iris_ind_doc["content"];
             INFOF("received ind : %s\n", event_name.c_str());
-            ret = processEvent(event_name.c_str(), payload, length);
+            ret = processEvent(event_name.c_str(), product_key, device_name, content);
             INFOF("event handle result = %d\n", ret);
         }
     }
@@ -187,11 +192,12 @@ void handleIrisKitMessage(const char* data, int length) {
 
 
 // private function definitions
-static int processEvent(const char* event_name, const char* payload, int length) {
+static int processEvent(String event_name, String product_key, String device_name, String content) {
     int event_table_length = sizeof(event_handler_table) / sizeof(event_handler_table[0]);
     for (int i = 0; i < event_table_length; i++) {
-        if (0 == strcmp(event_name, event_handler_table[i].event_name)) {
-            return event_handler_table[i].handler(payload, length);
+        if (0 == strcmp(event_name.c_str(), event_handler_table[i].event_name)) {
+            INFOF("call event handler with payload : %s, %s\n", product_key.c_str(), device_name.c_str());
+            return event_handler_table[i].handler(product_key, device_name, content);
         }
     }
     return -1;
@@ -222,17 +228,18 @@ static String buildHeartBeat() {
     return heartBeatMessage;
 }
 
-static int handleHartBeat(const char* payload, int length) {
-    // TODO:
-    // do nothing currently
-    (void) payload;
-    (void) length;
+static int handleHartBeat(String product_key, String device_name, String content) {
+    INFOF("received heartbeat : %s, %s\n", product_key.c_str(), device_name.c_str());
     return 0;
 }
 
-static int handleEmit(const char* payload, int length) {
-    // TODO:
-    (void) payload;
-    (void) length;
+static int handleEmit(String product_key, String device_name, String content) {
+    INFOF("received emit code : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
+    emit_code_doc.clear();
+    if (OK == deserializeJson(emit_code_doc, content)) {
+        int remote_id = emit_code_doc["content"]["remoteId"];
+        int key_number = emit_code_doc["content"]["keyNumber"];
+        INFOF("will emit key : %d for remote %d\n", key_number, remote_id);
+    }
     return 0;
 }

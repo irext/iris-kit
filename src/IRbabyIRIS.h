@@ -37,7 +37,7 @@
 #define EVENT_NAME_CONNECT           "__connect"
 #define EVENT_HEART_BEAT_REQ         "__hb_request"
 
-typedef int (*eventHandler)(const char* payload, int length);
+typedef int (*eventHandler)(String, String, String);
 typedef struct {
     const char* event_name;
     eventHandler handler;
