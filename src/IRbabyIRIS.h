@@ -29,6 +29,7 @@
 // web http call URL list
 #define FETCH_CREDENTIAL_SUFFIX      "/irext-collect/credentials/fetch_credential"
 #define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
+#define DOWNLOAD_BIN_SUFFIX          "/irext-collect/download"
 #define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
 #define DOWNLOAD_SUFFIX              ".bin"
 

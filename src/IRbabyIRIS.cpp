@@ -142,7 +142,7 @@ int fetchIrisCredential(String credential_token,
             int resultCode = http_response_doc["status"]["code"];
             if (0 == resultCode) {
                 INFOLN("response valid, try getting entity");
-                device_secret = (String) http_response_doc["entity"]["deviceSecret"];
+                device_secret = (const char*) http_response_doc["entity"]["deviceSecret"];
                 app_id = (int) http_response_doc["entity"]["appId"];
                 INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
                     product_key.c_str(), device_name.c_str(), device_secret.c_str());
@@ -169,12 +169,11 @@ void sendIrisKitHeartBeat() {
 void handleIrisKitMessage(const char* data, int length) {
     int ret = 0;
     char* payload = (char*) malloc(length + 1);
-    char* payload_json = payload;
     if (NULL != payload) {
         strncpy(payload, data, length);
         payload[length] = '\0';
         INFOF("--> %s\n", payload);
-        if (OK == deserializeJson(iris_ind_doc, payload_json)) {
+        if (OK == deserializeJson(iris_ind_doc, payload)) {
             String event_name = iris_ind_doc["eventName"];
             String product_key = iris_ind_doc["productKey"];
             String device_name = iris_ind_doc["deviceName"];
@@ -237,8 +236,8 @@ static int handleEmit(String product_key, String device_name, String content) {
     INFOF("received emit code : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
     emit_code_doc.clear();
     if (OK == deserializeJson(emit_code_doc, content)) {
-        int remote_id = emit_code_doc["content"]["remoteId"];
-        int key_number = emit_code_doc["content"]["keyNumber"];
+        int remote_id = emit_code_doc["remoteId"];
+        int key_number = emit_code_doc["keyNumber"];
         INFOF("will emit key : %d for remote %d\n", key_number, remote_id);
     }
     return 0;

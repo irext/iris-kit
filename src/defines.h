@@ -30,7 +30,7 @@ typedef unsigned short uint16_t;
 typedef short int16_t;
 typedef unsigned char uint8_t;
 
-#define FIRMWARE_VERSION "0.2.7" // version name
+#define FIRMWARE_VERSION "1.2.7" // version name
 #define VERSION_CODE 1          // version code
 
 /* log settings */
