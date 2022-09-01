@@ -37,6 +37,8 @@ typedef enum {
 
 void connectToAliyunIoT();
 
+void aliotKeepAlive();
+
 void checkAlinkMQTT();
 
 AliyunIoTSDK getSession();

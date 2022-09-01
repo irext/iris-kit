@@ -186,6 +186,7 @@ void setup() {
 void loop() {
     recvIR();
     yield();
+    aliotKeepAlive();
 }
 
 void factoryReset() {

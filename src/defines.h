@@ -47,8 +47,8 @@ typedef unsigned char uint8_t;
 
 /* ----------------- user settings ----------------- */
 /* mqtt settings */
-#define MQTT_CHECK_INTERVALS 30      // seconds
-#define MQTT_CONNECT_WAIT_TIME 20000 // MQTT 连接等待时间
+#define MQTT_CHECK_INTERVALS   30     // seconds
+#define MQTT_CONNECT_WAIT_TIME 20000  // MQTT 连接等待时间
 
 /* receive disable */
 #define DISABLE_SIGNAL_INTERVALS 600 // seconds

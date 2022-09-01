@@ -14,7 +14,7 @@
 #include <PubSubClient.h>
 #include <SHA256.h>
 
-#define CHECK_INTERVAL 10000
+#define CHECK_INTERVAL 30000
 #define MESSAGE_BUFFER_SIZE 10
 #define MQTT_CONNECT_RETRY_MAX 3
 
@@ -197,12 +197,11 @@ int AliyunIoTSDK::loop() {
     client->loop();
     if (millis() - lastMs >= CHECK_INTERVAL) {
         lastMs = millis();
-        Serial.print("connection check in loop\n");
         mqttStatus = mqttCheckConnect();
+        // Serial.print("MQTT connect return: ");
+        // Serial.println(mqttStatus);
     }
-    Serial.print("MQTT connect return: ");
-    Serial.println(mqttStatus);
- 
+
     if (0 == mqttStatus) {
         messageBufferCheck();
     }

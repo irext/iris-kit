@@ -84,27 +84,8 @@ void connectToAliyunIoT() {
     
 }
 
-void checkAlinkMQTT() {
-    int mqttStatus = 0;
-    mqttStatus = iot.loop();
-
-    if (0 == mqttStatus) {
-        iot_retry = 0;
-        if (false == downstream_topic_subscribed) {
-            INFOF("subscribe topic : %s\n", g_downstream_topic.c_str());
-            registerCallback(g_downstream_topic.c_str(), 0);
-            downstream_topic_subscribed = true;
-        } else {
-            sendIrisKitHeartBeat();
-        }
-    } else {
-        INFOF("Alink MQTT check failed, retry = %d\n", iot_retry);
-        iot_retry++;
-    }
-    if (iot_retry >= IOT_RETRY_MAX) {
-        ERRORLN("Alink could not established, something went wrong, reset...");
-        factoryReset();
-    }
+void aliotKeepAlive() {
+    iot.loop();
 }
 
 // not only for IRIS related topic based session
@@ -127,5 +108,27 @@ static void irisAlinkCallback(const char *topic, uint8_t *data, int length) {
     INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
     if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
         handleIrisKitMessage((const char*) data, length);
+    }
+}
+
+void checkAlinkMQTT() {
+    int mqttStatus = 0;
+
+    if (0 == mqttStatus) {
+        iot_retry = 0;
+        if (false == downstream_topic_subscribed) {
+            INFOF("subscribe topic : %s\n", g_downstream_topic.c_str());
+            registerCallback(g_downstream_topic.c_str(), 0);
+            downstream_topic_subscribed = true;
+        } else {
+            sendIrisKitHeartBeat();
+        }
+    } else {
+        INFOF("Alink MQTT check failed, retry = %d\n", iot_retry);
+        iot_retry++;
+    }
+    if (iot_retry >= IOT_RETRY_MAX) {
+        ERRORLN("Alink could not established, something went wrong, reset...");
+        factoryReset();
     }
 }
