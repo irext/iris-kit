@@ -33,6 +33,8 @@
 #define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
 #define DOWNLOAD_SUFFIX              ".bin"
 
+// IRext bin code storage
+#define SAVE_PATH                    "/ir/"
 
 // IRIS communication
 #define EVENT_NAME_CONNECT           "__connect"

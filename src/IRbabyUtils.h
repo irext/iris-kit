@@ -21,34 +21,12 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_IR_H
-#define IRBABY_IR_H
+#include "WString.h"
 
-#include <Arduino.h>
-#include <IRsend.h>
-#include <IRrecv.h>
-#include "ir_decode.h"
+#ifndef IRBABY_IRIS_UTILS_H
+#define IRBABY_IRIS_UTILS_H
 
-void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
+int split_string(const String source, char* parts[], const char* delimiter);
 
-void enableIR();
+#endif //IRBABY_IRIS_UTILS_H
 
-void disableIR();
-
-bool downloadBin(int remote_id);
-
-bool sendIR(String file_name);
-
-bool emitIR(String timing);
-
-bool sendCommand(String file_name, int key);
-
-void sendStatus(String file_name, t_remote_ac_status status);
-
-void recvIR();
-
-bool saveIR(String file_name);
-
-void initAC(String);
-
-#endif // IRBABY_IR_H

@@ -176,8 +176,8 @@ void setup() {
     saveSettings();
 
     delay(SYSTEM_DELAY);
-    connectToAliyunIoT();
     loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
+    connectToAliyunIoT();
 
     alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkAlinkMQTT);
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
@@ -185,6 +185,7 @@ void setup() {
 
 void loop() {
     recvIR();
+    // downloadBin();
     yield();
     aliotKeepAlive();
 }

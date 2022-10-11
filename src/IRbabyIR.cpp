@@ -30,20 +30,22 @@
 #include "IRbabyUserSettings.h"
 #include "IRbabyIRIS.h"
 #include "IRbabyHttp.h"
+#include "IRbabyUtils.h"
 
 #include "IRbabyIR.h"
 
-#define SAVE_PATH     "/ir/"
+#define IR_SERIES_MAX    (1024)
+#define IR_END_CODE      (10000)
 
-decode_results results; // Somewhere to store the results
-const uint8_t kTimeout = 50;
-// As this program is a special purpose capture/decoder, let us use a larger
-// than normal buffer so we can handle Air Conditioner remote codes.
-const uint16_t kCaptureBufferSize = 1024;
-static IRsend * ir_send = nullptr;
-static IRrecv * ir_recv = nullptr;
 bool saveSignal();
 
+decode_results results; // Somewhere to store the results
+const uint8_t k_timeout = 50;
+// As this program is a special purpose capture/decoder, let us use a larger
+// than normal buffer so we can handle Air Conditioner remote codes.
+const uint16_t k_capture_buffer_size = IR_SERIES_MAX;
+static IRsend * ir_send = nullptr;
+static IRrecv * ir_recv = nullptr;
 
 bool sendIR(String file_name) {
     String save_path = SAVE_PATH + file_name;
@@ -54,9 +56,9 @@ bool sendIR(String file_name) {
             return false;
         }
         Serial.println();
-        uint16_t *data_buffer = (uint16_t *)malloc(sizeof(uint16_t) * 512);
+        uint16_t *data_buffer = (uint16_t *)malloc(sizeof(uint16_t) * IR_SERIES_MAX);
         uint16_t length = cache.size() / 2;
-        memset(data_buffer, 0x0, 512);
+        memset(data_buffer, 0x0, IR_SERIES_MAX);
         INFOF("file size = %d\n", cache.size());
         INFOLN();
         cache.readBytes((char *)data_buffer, cache.size());
@@ -68,6 +70,63 @@ bool sendIR(String file_name) {
         return true;
     }
     return false;
+}
+
+bool emitIR(String timing) {
+    char* parts[IR_SERIES_MAX];
+    uint16_t series[IR_SERIES_MAX + 1] = { 0 };
+    int parts_num = 0;
+    int i = 0;
+
+    parts_num = split_string(timing, parts, ",");
+    if (parts_num > 0) {
+        for (i = 0; i < parts_num; i++) {
+            series[i] = (uint16_t) atoi(parts[i]);
+            // INFOF("%d ", series[i]);
+        }
+        series[i] = (uint16_t) IR_END_CODE;
+        ir_recv->disableIRIn();
+        ir_send->sendRaw(series, parts_num + 1, 38);
+        ir_recv->enableIRIn();
+    }
+    return true;
+}
+
+bool sendCommand(String file_name, int key) {
+    String save_path = SAVE_PATH;
+    save_path += file_name;
+    if (LittleFS.exists(save_path)) {
+        File cache = LittleFS.open(save_path, "r");
+        if (cache) {
+            UINT16 content_size = cache.size();
+            DEBUGF("content size = %d\n", content_size);
+
+            if (content_size != 0) {
+                UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
+                cache.seek(0L, fs::SeekSet);
+                cache.readBytes((char *)content, content_size);
+                ir_binary_open(2, 1, content, content_size);
+                UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
+                UINT16 data_length = ir_decode(0, user_data, NULL, FALSE);
+
+                DEBUGF("data_length = %d\n", data_length);
+                if (LOG_DEBUG) {
+                    for (int i = 0; i < data_length; i++)
+                        Serial.printf("%d ", *(user_data + i));
+                    Serial.println();
+                }
+                ir_recv->disableIRIn();
+                ir_send->sendRaw(user_data, data_length, 38);
+                ir_recv->enableIRIn();
+                ir_close();
+                free(user_data);
+                free(content);
+            } else
+                ERRORF("Open %s is empty\n", save_path.c_str());
+        }
+        cache.close();
+    }
+    return true;
 }
 
 void sendStatus(String file, t_remote_ac_status status) {
@@ -89,7 +148,7 @@ void sendStatus(String file, t_remote_ac_status status) {
                 cache.seek(0L, fs::SeekSet);
                 cache.readBytes((char *)content, content_size);
                 ir_binary_open(REMOTE_CATEGORY_AC, 1, content, content_size);
-                UINT16 *user_data = (UINT16 *)malloc(1024 * sizeof(UINT16));
+                UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
                 UINT16 data_length = ir_decode(0, user_data, &status, FALSE);
 
                 DEBUGF("data_length = %d\n", data_length);
@@ -156,43 +215,6 @@ void initAC(String file) {
     ACStatus[file]["speed"] = 0;
 }
 
-bool sendKey(String file_name, int key) {
-    String save_path = SAVE_PATH;
-    save_path += file_name;
-    if (LittleFS.exists(save_path)) {
-        File cache = LittleFS.open(save_path, "r");
-        if (cache) {
-            UINT16 content_size = cache.size();
-            DEBUGF("content size = %d\n", content_size);
-
-            if (content_size != 0) {
-                UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
-                cache.seek(0L, fs::SeekSet);
-                cache.readBytes((char *)content, content_size);
-                ir_binary_open(2, 1, content, content_size);
-                UINT16 *user_data = (UINT16 *)malloc(1024 * sizeof(UINT16));
-                UINT16 data_length = ir_decode(0, user_data, NULL, FALSE);
-
-                DEBUGF("data_length = %d\n", data_length);
-                if (LOG_DEBUG) {
-                    for (int i = 0; i < data_length; i++)
-                        Serial.printf("%d ", *(user_data + i));
-                    Serial.println();
-                }
-                ir_recv->disableIRIn();
-                ir_send->sendRaw(user_data, data_length, 38);
-                ir_recv->enableIRIn();
-                ir_close();
-                free(user_data);
-                free(content);
-            } else
-                ERRORF("Open %s is empty\n", save_path.c_str());
-        }
-        cache.close();
-    }
-    return true;
-}
-
 void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
     if (ir_send != nullptr) {
         delete ir_send;
@@ -203,7 +225,7 @@ void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
     ir_send = new IRsend(send_pin);
     DEBUGF("Load IR send pin at %d\n", send_pin);
     ir_send->begin();
-    ir_recv = new IRrecv(recv_pin, kCaptureBufferSize, kTimeout, true);
+    ir_recv = new IRrecv(recv_pin, k_capture_buffer_size, k_timeout, true);
     disableIR();
 }
 

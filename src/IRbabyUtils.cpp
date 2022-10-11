@@ -21,34 +21,51 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_IR_H
-#define IRBABY_IR_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#include <Arduino.h>
-#include <IRsend.h>
-#include <IRrecv.h>
-#include "ir_decode.h"
+#include "IRbabyUtils.h"
 
-void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
+int split_string(const String source, char* parts[], const char* delimiter) {
+    char* pch = NULL;
+    char* copy = NULL;
+    char* tmp = NULL;
+    int i = 0;
 
-void enableIR();
+    copy = strdup(source.c_str());
+    if (NULL == copy) {
+        goto exit;
+    }
 
-void disableIR();
+    pch = strtok(copy, delimiter);
 
-bool downloadBin(int remote_id);
+    tmp = strdup(pch);
+    if (NULL == tmp) {
+        goto exit;
+    }
 
-bool sendIR(String file_name);
+    parts[i++] = tmp;
 
-bool emitIR(String timing);
+    while (pch) {
+        pch = strtok(NULL, delimiter);
+        if (NULL == pch) break;
 
-bool sendCommand(String file_name, int key);
+        tmp = strdup(pch);
+        if (NULL == tmp) {
+            goto exit;
+        }
 
-void sendStatus(String file_name, t_remote_ac_status status);
+        parts[i++] = tmp;
+    }
 
-void recvIR();
+    free(copy);
+    return i;
 
-bool saveIR(String file_name);
-
-void initAC(String);
-
-#endif // IRBABY_IR_H
+exit:
+    free(copy);
+    for (int j = 0; j < i; j++) {
+        free(parts[j]);
+    }
+    return -1;
+}

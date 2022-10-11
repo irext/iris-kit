@@ -27,12 +27,14 @@
 
 #include <Esp.h>
 #include <WString.h>
+#include <LittleFS.h>
 
 #include "defines.h"
 #include "IRbabyGlobal.h"
 #include "IRbabySerial.h"
 #include "IRbabyAlink.h"
 #include "IRbabyHttp.h"
+#include "IRbabyIR.h"
 
 #include "IRbabyIRIS.h"
 
@@ -48,9 +50,9 @@ extern String g_device_name;
 extern String g_upstream_topic;
 extern int g_app_id;
 
+
 char iris_credential_token[CREDENTIAL_MAX] = { 0 };
 char iris_server_address[URL_SHORT_MAX] = { 0 };
-
 
 // private function declarations
 static int processEvent(String event_name, String product_key, String device_name, String content);
@@ -156,6 +158,37 @@ int fetchIrisCredential(String credential_token,
     return ret;
 }
 
+bool downloadBin(int remote_id) {
+    bool ret = false;
+    bool protocol_prefix = false;
+    String save_file = "";
+    String download_bin_url;
+    http_error_t http_ret = HTTP_ERROR_GENERIC;
+
+    if (NULL != strstr(iris_server_address, "http://")) {
+        protocol_prefix = true;
+    }
+    if (protocol_prefix) {
+        download_bin_url = String(iris_server_address);
+    } else {
+        download_bin_url = String("http://");
+        download_bin_url.concat(iris_server_address);
+    }
+    download_bin_url.concat(String(DOWNLOAD_BIN_SUFFIX));
+
+    if (-1 != remote_id) {
+        INFOF("notified to download bin: %d", remote_id);
+        save_file = String("ir_") + String(remote_id);
+
+        String temp = String(SAVE_PATH) + String("/") + save_file;
+        if (!LittleFS.exists(temp)) {
+            downLoadFile(download_bin_url, save_file, SAVE_PATH);
+            ret = true;
+        }
+    }
+    return ret;
+}
+
 void sendIrisKitConnect() {
     String connectMessage = buildConnect();
     sendRawData(g_upstream_topic.c_str(), (uint8_t*) connectMessage.c_str(), connectMessage.length());
@@ -237,8 +270,12 @@ static int handleEmit(String product_key, String device_name, String content) {
     emit_code_doc.clear();
     if (OK == deserializeJson(emit_code_doc, content)) {
         int remote_id = emit_code_doc["remoteId"];
-        int key_number = emit_code_doc["keyNumber"];
-        INFOF("will emit key : %d for remote %d\n", key_number, remote_id);
+        String key_name = emit_code_doc["keyName"];
+        String key_value = emit_code_doc["keyValue"];
+        INFOF("will emit key : %s for remote %d = %s\n", key_name.c_str(), remote_id, key_value.c_str());
+        emitIR(key_value);
+    } else {
+        INFOF("deserialize failed\n");
     }
     return 0;
 }

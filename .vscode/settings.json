@@ -13,6 +13,7 @@
         "random": "cpp",
         "optional": "cpp",
         "memory_resource": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "*.tcc": "cpp"
     }
 }
