@@ -176,7 +176,16 @@ void setup() {
     saveSettings();
 
     delay(SYSTEM_DELAY);
-    loadIRPin(ConfigData["pin"]["ir_send"], ConfigData["pin"]["ir_receive"]);
+    uint8_t send_pin = ConfigData["pin"]["ir_send"];
+    uint8_t recv_pin = ConfigData["pin"]["ir_receive"];
+    if (send_pin == 0) {
+        send_pin = ir_send_pin;
+    }
+    if (recv_pin == 0) {
+        recv_pin = ir_receive_pin;
+    }
+    INFOF("IR pin config get : %d, %d\n", send_pin, recv_pin);
+    loadIRPin(send_pin, recv_pin);
     connectToAliyunIoT();
 
     alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkAlinkMQTT);

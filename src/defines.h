@@ -65,8 +65,8 @@ typedef unsigned char uint8_t;
 #define RESET_PIN 2
 
 /* 315 RF pin */
-#define T_315 5
-#define R_315 4
+// #define T_315 5
+// #define R_315 4
 
 /* 433 RF pin */
 #define T_433 14
@@ -74,7 +74,7 @@ typedef unsigned char uint8_t;
 
 /* IR pin */
 #define T_IR 14
-#define R_IR 12
+#define R_IR 4
 
 /* ----------------- lsoc setting --------------- */
 /* lsoc heart beat cycle */
