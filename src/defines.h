@@ -73,8 +73,8 @@ typedef unsigned char uint8_t;
 #define R_433 12
 
 /* IR pin */
-#define T_IR 14
-#define R_IR 4
+#define T_IR 4
+#define R_IR 14
 
 /* ----------------- lsoc setting --------------- */
 /* lsoc heart beat cycle */

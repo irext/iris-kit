@@ -82,10 +82,10 @@ bool emitIR(String timing) {
     if (parts_num > 0) {
         for (i = 0; i < parts_num; i++) {
             series[i] = (uint16_t) atoi(parts[i]);
-            // INFOF("%d ", series[i]);
         }
         series[i] = (uint16_t) IR_END_CODE;
         ir_recv->disableIRIn();
+        INFOF("IR send raw : %d\n", parts_num);
         ir_send->sendRaw(series, parts_num + 1, 38);
         ir_recv->enableIRIn();
     }
