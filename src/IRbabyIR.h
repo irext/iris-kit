@@ -41,6 +41,8 @@ bool sendIR(String file_name);
 
 bool emitIR(String timing);
 
+bool saveIR(decode_results &results);
+
 bool sendCommand(String file_name, int key);
 
 void sendStatus(String file_name, t_remote_ac_status status);

@@ -60,6 +60,7 @@ static String buildConnect();
 static String buildHeartBeat();
 static int handleHartBeat(String product_key, String device_name, String content);
 static int handleEmit(String product_key, String device_name, String content);
+static int handleNotifyStatus(String product_key, String device_name, String content);
 
 // private variable definitions
 event_handler_t event_handler_table[] = {
@@ -70,6 +71,10 @@ event_handler_t event_handler_table[] = {
     {
         "__emitCode",
         handleEmit,
+    },
+    {
+        "__notifyStatus",
+        handleNotifyStatus,
     }
 };
 
@@ -277,5 +282,10 @@ static int handleEmit(String product_key, String device_name, String content) {
     } else {
         INFOF("deserialize failed\n");
     }
+    return 0;
+}
+
+static int handleNotifyStatus(String product_key, String device_name, String content) {
+    INFOF("received emit code : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
     return 0;
 }

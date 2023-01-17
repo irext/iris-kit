@@ -14,6 +14,7 @@
         "optional": "cpp",
         "memory_resource": "cpp",
         "system_error": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "functional": "cpp"
     }
 }

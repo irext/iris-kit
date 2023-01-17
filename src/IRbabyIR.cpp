@@ -37,9 +37,6 @@
 #define IR_SERIES_MAX    (1024)
 #define IR_END_CODE      (10000)
 
-bool saveSignal();
-
-decode_results results; // Somewhere to store the results
 const uint8_t k_timeout = 50;
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
@@ -167,11 +164,12 @@ void sendStatus(String file, t_remote_ac_status status) {
 }
 
 void recvIR() {
+    decode_results results;
     if (ir_recv->decode(&results)) {
         DEBUGF("raw length = %d\n", results.rawlen - 1);
         String raw_data;
         for (int i = 1; i < results.rawlen; i++) {
-            raw_data += String(*(results.rawbuf + i) * kRawTick) + " ";
+            raw_data += String(*(results.rawbuf + i) * kRawTick) + ",";
         }
         ir_recv->resume();
         send_msg_doc.clear();
@@ -180,8 +178,7 @@ void recvIR() {
         send_msg_doc["params"]["length"] = results.rawlen;
         send_msg_doc["params"]["value"] = raw_data.c_str();
         DEBUGLN(raw_data.c_str());
-        // sendUDP(&send_msg_doc, remote_ip);
-        saveSignal();
+        saveIR(results);
     }
 }
 
@@ -191,7 +188,7 @@ bool saveIR(String file_name) {
     return LittleFS.rename("/bin/test", save_path);
 }
 
-bool saveSignal() {
+bool saveIR(decode_results& results) {
     String save_path = SAVE_PATH;
     save_path += "test";
     DEBUGF("save raw data as %s\n", save_path.c_str());
@@ -226,7 +223,7 @@ void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
     DEBUGF("Load IR send pin at %d\n", send_pin);
     ir_send->begin();
     ir_recv = new IRrecv(recv_pin, k_capture_buffer_size, k_timeout, true);
-    disableIR();
+    enableIR();
 }
 
 void disableIR() {

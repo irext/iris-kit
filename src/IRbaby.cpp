@@ -194,7 +194,6 @@ void setup() {
 
 void loop() {
     recvIR();
-    // downloadBin();
     yield();
     aliotKeepAlive();
 }
