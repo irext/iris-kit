@@ -16,5 +16,6 @@
         "system_error": "cpp",
         "*.tcc": "cpp",
         "functional": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
