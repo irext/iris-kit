@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_SERIAL_H
-#define IRBABY_SERIAL_H
+#ifndef IRIS_KIT_SERIALS_H
+#define IRIS_KIT_SERIALS_H
 
 #include <Arduino.h>
 
@@ -51,4 +51,4 @@
 #define ERROR(...)  \
     {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.print(__VA_ARGS__);}}
 
-#endif // IREASY_SERIAL_H
+#endif // IRIS_KIT_SERIALS_H

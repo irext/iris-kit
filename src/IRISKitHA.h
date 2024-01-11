@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_HA_H
-#define IRBABY_HA_H
+#ifndef IRIS_KIT_HA_H
+#define IRIS_KIT_HA_H
 
 #include <WString.h>
 
@@ -32,4 +32,4 @@ void returnACStatus(String filename, t_remote_ac_status ac_status);
 
 void registAC(String filename, bool flag);
 
-#endif // IRBABY_HA_H
+#endif // IRIS_KIT_HA_H

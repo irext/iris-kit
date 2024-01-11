@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_HTTP_H
-#define IRBABY_HTTP_H
+#ifndef IRIS_KIT_HTTP_H
+#define IRIS_KIT_HTTP_H
 
 #include <WString.h>
 
@@ -45,4 +45,4 @@ http_error_t httpPost(String url, String request_data, String& result);
 http_error_t downLoadFile(String url, String file, String path);
 
 
-#endif // IRBABY_HTTP_H
+#endif // IRIS_KIT_HTTP_H

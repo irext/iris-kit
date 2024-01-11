@@ -39,28 +39,27 @@
 
 #include "IRISKit.h"
 
-#define CREDENTIAL_INIT_RETRY_MAX     (3)
-#define SYSTEM_DELAY                  (2000)
-
 // external variable declarations
 extern char iris_server_address[];
 extern char iris_credential_token[];
 extern char iris_password[];
 
+extern String g_mqtt_server;
 extern String g_product_key;
 extern String g_device_name;
 extern String g_device_secret;
+extern String g_mqtt_client_id;
+extern String g_mqtt_password;
 extern int g_app_id;
-
 
 // public variable definitions
 int credential_init_retry = 0;
-t_iriskit_settings iriskit_settings;
-bool iriskit_settings_loaded = false;
+iris_kit_settings_t iriskit_settings;
+bool iris_kit_settings_loaded = false;
 
 
 // private variable definitions
-static Ticker alinkCheckTask;          // Aliyun IoT MQTT check timer
+static Ticker iotCheckTask;            // IRext IoT MQTT check timer
 static Ticker disableIRTask;           // disable IR receive
 static Ticker disableRFTask;           // disable RF receive
 static Ticker saveDataTask;            // save data
@@ -108,10 +107,10 @@ void setup() {
         !iriskit_settings.server_address.equalsIgnoreCase("NULL") &&
         !iriskit_settings.password.isEmpty() &&
         !iriskit_settings.password.equalsIgnoreCase("NULL")) {
-        iriskit_settings_loaded = true;
+        iris_kit_settings_loaded = true;
     }
 
-    INFOF("iriskit_settings_loaded ? %s\n", iriskit_settings_loaded ? "yes" : "no");
+    INFOF("iriskit_settings_loaded ? %s\n", iris_kit_settings_loaded ? "yes" : "no");
 
     // custom parameter for iris credentials
     WiFiManagerParameter* server_address = NULL;
@@ -122,7 +121,7 @@ void setup() {
     memset(iris_credential_token, 0, CREDENTIAL_MAX);
     memset(iris_password, 0, PASSWORD_MAX);
 
-    if (iriskit_settings_loaded) {
+    if (iris_kit_settings_loaded) {
         INFOLN("iriskit settings loaded");
         strncpy(iris_server_address, iriskit_settings.server_address.c_str(), URL_SHORT_MAX - 1);
         strncpy(iris_credential_token, iriskit_settings.credential_token.c_str(), CREDENTIAL_MAX - 1);
@@ -147,15 +146,13 @@ void setup() {
 
     wifi_manager.autoConnect();
 
-    if (!iriskit_settings_loaded) {
+    if (!iris_kit_settings_loaded) {
         strncpy(iris_server_address, server_address->getValue(), URL_SHORT_MAX - 1);
         strncpy(iris_credential_token, credential_token->getValue(), CREDENTIAL_MAX - 1);
         String rawPassword = String(password->getValue());
         strncpy(iris_password, md5(rawPassword).c_str(), PASSWORD_MAX - 1);
     }
 
-    // digest password
-    
     // TODO: fix the logic without settings loaded
     INFOF("Wifi Connected, IRIS server = %s, credential token = %s, password = %s\n",
           iris_server_address, iris_credential_token, iris_password);
@@ -198,9 +195,26 @@ void setup() {
     }
     INFOF("IR pin config get : %d, %d\n", send_pin, recv_pin);
     loadIRPin(send_pin, recv_pin);
+
+    // prepare MQTT connection params
+    if (NULL != strstr(iris_server_address, "iris.irext.net")) {
+        g_mqtt_server = String(MQTT_HOST_REL);
+    } else {
+        String iris_server_address_dev = iriskit_settings.server_address;
+        int delim = iris_server_address_dev.indexOf(':');
+        if (delim != -1) {
+            g_mqtt_server = iris_server_address_dev.substring(0, delim);
+        } else {
+            g_mqtt_server = iris_server_address_dev;
+        }
+    }
+
+    g_mqtt_client_id = g_device_name;
+    g_mqtt_password = iriskit_settings.password;
+    
     connectToIrextIoT();
 
-    alinkCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIrextIoT);
+    iotCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIrextIoT);
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
 }
 

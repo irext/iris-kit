@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_GLOBAL_H
-#define IRBABY_GLOBAL_H
+#ifndef IRIS_KIT_GLOBAL_H
+#define IRIS_KIT_GLOBAL_H
 
 #include <ArduinoJson.h>
 #include <WiFiManager.h>
@@ -44,4 +44,4 @@ extern uint8_t ir_receive_pin;
     extern uint8_t rf433_receive_pin;
 #endif
 
-#endif // IRBABY_GLOBAL_H
+#endif // IRIS_KIT_GLOBAL_H

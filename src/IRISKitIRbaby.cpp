@@ -65,6 +65,8 @@ static int handleHartBeat(String product_key, String device_name, String content
 static int handleEmit(String product_key, String device_name, String content);
 static int handleNotifyStatus(String product_key, String device_name, String content);
 
+static int hb_count = 0;
+
 // private variable definitions
 event_handler_t event_handler_table[] = {
     {
@@ -91,14 +93,10 @@ int getIRISKitVersion(char *buffer, int buffer_size) {
     return strlen(buffer);
 }
 
-int getDeviceID(char* buffer, int buffer_size) {
-    if (NULL == buffer) {
-        return -1;
-    }
-    String chipId = String(ESP.getChipId(), HEX);
-    memset(buffer, 0, buffer_size);
-    snprintf(buffer, buffer_size - 1, "%s", chipId.c_str());
-    return strlen(buffer);
+String getDeviceID() {
+    String device_id("IRISKit_");
+    device_id.concat(String(ESP.getChipId(), HEX));
+    return device_id;
 }
 
 int authIrisKitAccount(String credential_token,
@@ -113,7 +111,7 @@ int authIrisKitAccount(String credential_token,
     String fetch_credential_url;
     String request_data = "";
     String response_data = "";
-    String device_id("IRbaby_");
+    
     http_error_t http_ret = HTTP_ERROR_GENERIC;
 
     if (NULL != strstr(iris_server_address, "http://")) {
@@ -126,7 +124,6 @@ int authIrisKitAccount(String credential_token,
         fetch_credential_url.concat(iris_server_address);
     }
     fetch_credential_url.concat(String(GET_IRIS_KIT_ACCOUNT_SUFFIX));
-    device_id.concat(String(ESP.getChipId(), HEX));
 
     INFOF("fetch credential URL = %s\n", fetch_credential_url.c_str());
     if (credential_token.isEmpty()) {
@@ -141,7 +138,7 @@ int authIrisKitAccount(String credential_token,
     product_key = credential_token.substring(0, tsi);
     device_name = credential_token.substring(tsi + 1);
     http_request_doc.clear();
-    http_request_doc["deviceID"] = device_id;
+    http_request_doc["deviceID"] = getDeviceID();
     http_request_doc["credentialToken"] = credential_token;
     http_request_doc["password"] = password;
     serializeJson(http_request_doc, request_data);
@@ -205,6 +202,7 @@ void sendIrisKitConnect() {
 }
 
 void sendIrisKitHeartBeat() {
+    INFOLN("send iris kit heart beat[%d]", hb_count++);
     String heartBeatMessage = buildHeartBeat();
     sendData(g_upstream_topic.c_str(), (uint8_t*) heartBeatMessage.c_str(), heartBeatMessage.length());
 }

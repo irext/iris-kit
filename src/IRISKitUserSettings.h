@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_USER_SETTINGS_H
-#define IRBABY_USER_SETTINGS_H
+#ifndef IRIS_KIT_USER_SETTINGS_H
+#define IRIS_KIT_USER_SETTINGS_H
 
 #include <ArduinoJson.h>
 
@@ -39,11 +39,11 @@ bool loadSettings();
 bool saveACStatus(String file, t_remote_ac_status status);
 t_remote_ac_status getACStatus(String file);
 
-bool setIrisKitSettings(t_iriskit_settings& iriskit_settings);
-t_iriskit_settings getIrisKitSettings();
+bool setIrisKitSettings(iris_kit_settings_t& iriskit_settings);
+iris_kit_settings_t getIrisKitSettings();
 
 extern StaticJsonDocument<1024> ConfigData;
 extern StaticJsonDocument<1024> ACStatus;
 extern StaticJsonDocument<1024> IrisKitSettings;
 
-#endif // IRBABY_USER_SETTINGS_H
+#endif // IRIS_KIT_USER_SETTINGS_H

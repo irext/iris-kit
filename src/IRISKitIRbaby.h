@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_IRIS_H
-#define IRBABY_IRIS_H
+#ifndef IRIS_KIT_IR_BABY_H
+#define IRIS_KIT_IR_BABY_H
 
 #define CREDENTIAL_MAX               (40)
 #define USER_NAME_MAX                (64)
@@ -50,7 +50,7 @@ typedef struct {
 
 int getIRISKitVersion(char *buffer, int buffer_size);
 
-int getDeviceID(char* buffer, int buffer_size);
+String getDeviceID();
 
 int authIrisKitAccount(String credential_token,
                        String password,
@@ -65,4 +65,4 @@ void sendIrisKitHeartBeat();
 
 void handleIrisKitMessage(const char* data, int length);
 
-#endif // IRBABY_IRIS_H
+#endif // IRIS_KIT_IR_BABY_H

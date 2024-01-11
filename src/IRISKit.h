@@ -21,16 +21,16 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_H
-#define IRBABY_H
+#ifndef IRIS_KIT_H
+#define IRIS_KIT_H
 
 typedef struct {
     String server_address;
     String credential_token;
     String password;
-} t_iriskit_settings;
+} iris_kit_settings_t;
 
 
 void IRAM_ATTR factoryReset();
 
-#endif // IRBABY_H
+#endif // IRIS_KIT_H

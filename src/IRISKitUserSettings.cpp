@@ -168,15 +168,15 @@ t_remote_ac_status getACStatus(String file) {
     return status;
 }
 
-bool setIrisKitSettings(t_iriskit_settings& iriskit_settings) {
+bool setIrisKitSettings(iris_kit_settings_t& iriskit_settings) {
     IrisKitSettings["server_address"] = iriskit_settings.server_address;
     IrisKitSettings["token"] = iriskit_settings.credential_token;
     IrisKitSettings["password"] = iriskit_settings.password;
     return true;
 }
 
-t_iriskit_settings getIrisKitSettings() {
-    t_iriskit_settings iriskit_settings;
+iris_kit_settings_t getIrisKitSettings() {
+    iris_kit_settings_t iriskit_settings;
     iriskit_settings.server_address = (String)IrisKitSettings["server_address"];
     iriskit_settings.credential_token = (String)IrisKitSettings["token"];
     iriskit_settings.password = (String)IrisKitSettings["password"];

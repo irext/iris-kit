@@ -23,12 +23,12 @@
 
 #include "WString.h"
 
-#ifndef IRBABY_IRIS_UTILS_H
-#define IRBABY_IRIS_UTILS_H
+#ifndef IRIS_KIT_UTILS_H
+#define IRIS_KIT_UTILS_H
 
 int split_string(const String source, char* parts[], const char* delimiter);
 
 String md5(String str);
 
-#endif //IRBABY_IRIS_UTILS_H
+#endif // IRIS_KIT_UTILS_H
 

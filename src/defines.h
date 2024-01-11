@@ -30,11 +30,12 @@ typedef unsigned short uint16_t;
 typedef short int16_t;
 typedef unsigned char uint8_t;
 
-#define FIRMWARE_VERSION "1.2.7" // version name
-#define VERSION_CODE 1          // version code
+/* ----------------- version defs ----------------- */
+#define FIRMWARE_VERSION              "1.3.0"
+#define VERSION_CODE                  (2)
 
-/* log settings */
-#define BAUD_RATE 115200
+/* ----------------- log settings ----------------- */
+#define BAUD_RATE                     (115200)
 #ifndef LOG_DEBUG
     #define LOG_DEBUG false
 #endif
@@ -45,39 +46,25 @@ typedef unsigned char uint8_t;
     #define LOG_ERROR true
 #endif
 
-/* ----------------- user settings ----------------- */
-/* mqtt settings */
-#define MQTT_CHECK_INTERVALS   30     // seconds
-#define MQTT_CONNECT_WAIT_TIME 20000  // MQTT 连接等待时间
+/* ----------------- auth settings ----------------- */
+#define CREDENTIAL_INIT_RETRY_MAX     (3)
+#define SYSTEM_DELAY                  (2000)
 
-/* receive disable */
-#define DISABLE_SIGNAL_INTERVALS 600 // seconds
+/* ----------------- iot settings -----------------*/
+#define MQTT_HOST_REL                 "iot.irext.net"
+#define MQTT_CHECK_INTERVALS          (30)
+#define MQTT_CONNECT_WAIT_TIME        (20000)
+#define MQTT_RETRY_DELAY              (5000)
+#define MQTT_RETRY_MAX                (5)
 
-#define SAVE_DATA_INTERVALS 300 // seconds
-// uncomment below to enable RF
-// #define USE_RF
 
-// uncomment below to enable upload chip id to remote server
-// #define USE_INFO_UPLOAD
+/* ----------------- storage settings ----------------- */
+#define DISABLE_SIGNAL_INTERVALS      (600)
+#define SAVE_DATA_INTERVALS           (300)
 
-/* ----------------- default pin setting --------------- */
-/* reset pin */
-#define RESET_PIN 2
-
-/* 315 RF pin */
-// #define T_315 5
-// #define R_315 4
-
-/* 433 RF pin */
-#define T_433 14
-#define R_433 12
-
-/* IR pin */
-#define T_IR 4
-#define R_IR 14
-
-/* ----------------- lsoc setting --------------- */
-/* lsoc heart beat cycle */
-#define LSOC_HB_CYCLE  1800
+/* ----------------- pin settings --------------- */
+#define RESET_PIN                     (2)
+#define T_IR                          (4)
+#define R_IR                          (14)
 
 #endif  // _DEFINES_H

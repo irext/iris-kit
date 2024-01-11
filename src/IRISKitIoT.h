@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRBABY_ALINK_H
-#define IRBABY_ALINK_H
+#ifndef IRIS_KIT_IOT_H
+#define IRIS_KIT_IOT_H
 
 #include <stdint.h>
 
@@ -34,7 +34,7 @@ typedef enum {
     FSM_MAX = 7,
 } ep_state_t;
 
-void connectToIrextIoT();
+int connectToIrextIoT();
 
 void irextIoTKeepAlive();
 
@@ -46,4 +46,4 @@ void sendData(const char* topic, const uint8_t *data, int length);
 
 int securityPublish(const char *topic, const uint8_t *message, size_t msg_size, void *channel);
 
-#endif // IRBABY_ALINK_H
+#endif // IRIS_KIT_IOT_H
