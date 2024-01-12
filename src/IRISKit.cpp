@@ -220,8 +220,8 @@ void setup() {
 
 void loop() {
     recvIR();
-    yield();
     irextIoTKeepAlive();
+    yield();
 }
 
 void factoryReset() {
