@@ -52,7 +52,7 @@ typedef unsigned char uint8_t;
 
 /* ----------------- iot settings -----------------*/
 #define MQTT_HOST_REL                 "iot.irext.net"
-#define MQTT_CHECK_INTERVALS          (30)
+#define MQTT_CHECK_INTERVALS          (120)
 #define MQTT_CONNECT_WAIT_TIME        (20000)
 #define MQTT_RETRY_DELAY              (5000)
 #define MQTT_RETRY_MAX                (5)

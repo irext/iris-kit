@@ -61,6 +61,7 @@ char iris_password[PASSWORD_MAX] = { 0 };
 static int processEvent(String event_name, String product_key, String device_name, String content);
 static String buildConnect();
 static String buildHeartBeat();
+static int handleConnected(String product_key, String device_name, String content);
 static int handleHartBeat(String product_key, String device_name, String content);
 static int handleEmit(String product_key, String device_name, String content);
 static int handleNotifyStatus(String product_key, String device_name, String content);
@@ -70,15 +71,19 @@ static int hb_count = 0;
 // private variable definitions
 event_handler_t event_handler_table[] = {
     {
+        "__connected",
+        handleConnected,
+    },
+    {
         "__hb_response",
         handleHartBeat,
     },
     {
-        "__emitCode",
+        "__emit_code",
         handleEmit,
     },
     {
-        "__notifyStatus",
+        "__notify_status",
         handleNotifyStatus,
     }
 };
@@ -111,7 +116,8 @@ int authIrisKitAccount(String credential_token,
     String fetch_credential_url;
     String request_data = "";
     String response_data = "";
-    
+    String device_name_temp = "";
+
     http_error_t http_ret = HTTP_ERROR_GENERIC;
 
     if (NULL != strstr(iris_server_address, "http://")) {
@@ -136,7 +142,10 @@ int authIrisKitAccount(String credential_token,
         return -1;
     }
     product_key = credential_token.substring(0, tsi);
-    device_name = credential_token.substring(tsi + 1);
+    device_name_temp = credential_token.substring(tsi + 1);
+    tsi = device_name_temp.indexOf(",");
+    device_name = device_name_temp.substring(0, tsi);
+
     http_request_doc.clear();
     http_request_doc["deviceID"] = getDeviceID();
     http_request_doc["credentialToken"] = credential_token;
@@ -202,7 +211,7 @@ void sendIrisKitConnect() {
 }
 
 void sendIrisKitHeartBeat() {
-    INFOLN("send iris kit heart beat[%d]", hb_count++);
+    INFOF("send iris kit heart beat[%d]\n", hb_count++);
     String heartBeatMessage = buildHeartBeat();
     sendData(g_upstream_topic.c_str(), (uint8_t*) heartBeatMessage.c_str(), heartBeatMessage.length());
 }
@@ -266,6 +275,10 @@ static String buildHeartBeat() {
     serializeJson(iris_msg_doc, heartBeatMessage);
 
     return heartBeatMessage;
+}
+
+static int handleConnected(String product_key, String device_name, String content) {
+    return 0;
 }
 
 static int handleHartBeat(String product_key, String device_name, String content) {
