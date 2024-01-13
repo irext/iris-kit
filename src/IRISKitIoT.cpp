@@ -86,7 +86,7 @@ int connectToIrextIoT() {
           g_mqtt_server.c_str(), g_mqtt_port,
           g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
 
-    mqtt_client.setBufferSize(1024);
+    mqtt_client.setBufferSize(2048);
     mqtt_client.setServer(g_mqtt_server.c_str(), g_mqtt_port);
     mqtt_client.setCallback(irisIrextIoTCallback);
     conn_ret = connectToMQTTBroker();
