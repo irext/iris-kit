@@ -1,11 +1,21 @@
-# IRbaby-Firmware
+# IRIS Kit
 
-## 编译环境搭建
-1. 使用 VScode 打开 `iris-chipkit` 文件夹。
-2. 使用 VScode 下载安装 PlatformIO IDE 插件。![1](pic/1.png)
-3. 安装 ESP8266 SDK。![2](pic/2.png)
-4. 编译上传固件。![3](pic/4.png)
+IRIS Kit is an opensource module of IRIS with IR remote control emitter and receiver. It helps you to do the prototype verification of your smart hardware product.
 
-## 说明
-1. 固件应区分 flash 大小。ESP01 模组为 1m flash 所以只能烧录 1m 的固件。
-2. 固件的上位机为 [IRbaby-android](https://github.com/Caffreyfans/IRbaby-android/releases/download/0.9/IRbaby.apk)。
+## Connection
+<img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/iris-kit.png" width="240">
+
+## Development
+To develop with IRIS Kit, clone this repo and open the source code directory with VSCode and PlatformIO plugin.
+
+## Firmware
+To flash the official firmware, download the binary file from <a href="https://site.irext.net/sdk">SDK and Database</a>, and flash with <a href= "https://www.espressif.com.cn/sites/default/files/tools/flash_download_tool_3.9.5.zip">Espressif Download Flash Tool</a>.
+
+Choose ESP8285 (ESP-01M) and select the firmware bin to flash to your COM port.
+
+<img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/flash_tool_1.png">
+<br>
+<img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/flash_tool_2.png">
+
+## How to use
+Please refer to <a href="https://site.irext.net/iris/#iris_kit">IRIS-Kit</a> document. 
