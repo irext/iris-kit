@@ -9,7 +9,7 @@ IRIS Kit is an opensource module of IRIS with IR remote control emitter and rece
 To develop with IRIS Kit, clone this repo and open the source code directory with VSCode and PlatformIO plugin.
 
 ## Firmware
-To flash the official firmware, download the binary file from <a href="https://site.irext.net/sdk">SDK and Database</a>, and flash with <a href= "https://www.espressif.com.cn/sites/default/files/tools/flash_download_tool_3.9.5.zip">Espressif Download Flash Tool</a>.
+To flash the official firmware, download the binary file from <a href="https://site.irext.net/sdk#download">SDK and Database</a>, and flash with <a href= "https://www.espressif.com.cn/sites/default/files/tools/flash_download_tool_3.9.5.zip">Espressif Download Flash Tool</a>.
 
 Choose ESP8285 (ESP-01M) and select the firmware bin to flash to your COM port.
 
