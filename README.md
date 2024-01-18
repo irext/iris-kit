@@ -18,4 +18,4 @@ Choose ESP8285 (ESP-01M) and select the firmware bin to flash to your COM port.
 <img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/flash_tool_2.png">
 
 ## How to use
-Please refer to <a href="https://site.irext.net/iris/#iris_kit">IRIS-Kit</a> document. 
+Please refer to <a href="https://site.irext.net/iris/#collector">IRIS-Kit</a> document. 
