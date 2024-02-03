@@ -39,6 +39,12 @@
 #define TOPIC_DOWNSTREAM_REL   "/user/iris_kit_downstream"
 #define TOPIC_UPSTREAM_REL     "/user/iris_kit_upstream"
 
+
+// external variable declarations
+extern int g_runtime_env;
+
+
+// public variable definitions
 String g_mqtt_server = "";
 String g_product_key = "";
 String g_device_name = "";
@@ -53,9 +59,13 @@ int g_mqtt_port = 1883;
 
 int g_app_id = 0;
 
+
+// private variable definitions
 static bool downstream_topic_subscribed = false;
 static ep_state_t endpoint_state = FSM_IDLE;
 
+
+// private function declarations
 static int connectToMQTTBroker();
 
 static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
@@ -64,14 +74,16 @@ static int iot_retry = 0;
 
 static PubSubClient mqtt_client(wifi_client);
 
+
+// public function definitions
 int connectToIrextIoT() {
     downstream_topic_subscribed = false;
     int conn_ret = -1;
 
-    if (g_product_key.equals(IRIS_KIT_PK_DEV)) {
+    if (g_runtime_env == RUNTIME_DEBUG) {
         g_upstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_UPSTREAM_DEV;
         g_downstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_DOWNSTREAM_DEV;
-    } else if (g_product_key.equals(IRIS_KIT_PK_REL)) {
+    } else if (g_runtime_env == RUNTIME_RELEASE) {
         g_upstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_UPSTREAM_REL;
         g_downstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_DOWNSTREAM_REL;
     } else {
@@ -125,6 +137,8 @@ void checkIrextIoT() {
     }
 }
 
+
+// private function definitions
 static int connectToMQTTBroker() {
     int retry_times = 0;
 

@@ -54,6 +54,7 @@ extern int g_app_id;
 
 // public variable definitions
 int credential_init_retry = 0;
+int g_runtime_env = RUNTIME_RELEASE;
 iris_kit_settings_t iriskit_settings;
 bool iris_kit_settings_loaded = false;
 
@@ -199,6 +200,7 @@ void setup() {
     // prepare MQTT connection params
     if (NULL != strstr(iris_server_address, "iris.irext.net")) {
         g_mqtt_server = String(MQTT_HOST_REL);
+        g_runtime_env = RUNTIME_RELEASE;
     } else {
         String iris_server_address_dev = iriskit_settings.server_address;
         int delim = iris_server_address_dev.indexOf(':');
@@ -207,6 +209,7 @@ void setup() {
         } else {
             g_mqtt_server = iris_server_address_dev;
         }
+        g_runtime_env = RUNTIME_DEBUG;
     }
 
     g_mqtt_client_id = g_device_name;

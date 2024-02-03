@@ -24,6 +24,9 @@
 #ifndef IRIS_KIT_H
 #define IRIS_KIT_H
 
+#define RUNTIME_RELEASE    (0)
+#define RUNTIME_DEBUG      (1)
+
 typedef struct {
     String server_address;
     String credential_token;
