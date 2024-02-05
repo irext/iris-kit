@@ -130,11 +130,11 @@ void setup() {
     } else {
         INFOLN("iriskit settings not loaded, set it from WifiManager");
         server_address =
-            new WiFiManagerParameter("server_address", "Server Address", "", URL_SHORT_MAX);
+            new WiFiManagerParameter("server_address", "Server Address", "iris.irext.net", URL_SHORT_MAX);
         credential_token =
             new WiFiManagerParameter("credential_token", "Credential Token", "", CREDENTIAL_MAX);
         password =
-            new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX);
+            new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX, "type='password'");
 
         if (NULL == server_address || NULL == credential_token || NULL == password) {
             ERRORLN("not enough memory to create settings");
