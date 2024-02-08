@@ -1,6 +1,6 @@
 # IRIS Kit
 
-IRIS Kit is an opensource module of IRIS with IR remote control emitter and receiver. It helps you to do the prototype verification of your smart hardware product.
+IRIS Kit is an open source module of IRIS with IR remote control emitter and receiver. It helps you to do the prototype verification of your smart hardware product.
 
 ## Connection
 <img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/iris-kit.png" width="240">
