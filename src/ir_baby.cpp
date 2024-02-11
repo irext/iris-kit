@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,13 +31,13 @@
 
 #include "defines.h"
 
-#include "IRISKitGlobal.h"
-#include "IRISKitSerials.h"
-#include "IRISKitIoT.h"
-#include "IRISKitHttp.h"
-#include "IRISKitIR.h"
+#include "global.h"
+#include "serials.h"
+#include "iot_hub.h"
+#include "http_client.h"
+#include "ir_emit.h"
 
-#include "IRISKitIRbaby.h"
+#include "ir_baby.h"
 
 
 extern StaticJsonDocument<1024> http_request_doc;
@@ -104,12 +104,12 @@ String getDeviceID() {
     return device_id;
 }
 
-int authIrisKitAccount(String credential_token,
-                       String password,
-                       String& product_key,
-                       String& device_name,
-                       String& device_secret,
-                       int& app_id) {
+int registerIrisKit(String credential_token,
+                    String password,
+                    String& product_key,
+                    String& device_name,
+                    String& device_secret,
+                    int& app_id) {
     int ret = -1;
     int tsi = -1;
     bool protocol_prefix = false;

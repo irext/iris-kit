@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,15 +21,27 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_HA_H
-#define IRIS_KIT_HA_H
+#include "defines.h"
 
-#include <WString.h>
+#include "global.h"
 
-#include "ir_ac_control.h"
+StaticJsonDocument<1024> iris_msg_doc;
+StaticJsonDocument<1024> iris_ind_doc;
+StaticJsonDocument<1024> recv_msg_doc;
+StaticJsonDocument<1024> send_msg_doc;
+StaticJsonDocument<1024> http_request_doc;
+StaticJsonDocument<1024> http_response_doc;
+StaticJsonDocument<2048> emit_code_doc;
 
-void returnACStatus(String filename, t_remote_ac_status ac_status);
+WiFiManager wifi_manager;
+WiFiClient wifi_client;
 
-void registAC(String filename, bool flag);
+uint8_t ir_send_pin = T_IR;
+uint8_t ir_receive_pin = R_IR;
 
-#endif // IRIS_KIT_HA_H
+#ifdef USE_RF
+    uint8_t rf315_send_pin = T_315;
+    uint8_t rf315_receive_pin = R_315;
+    uint8_t rf433_send_pin = T_433;
+    uint8_t rf433_receive_pin = R_433;
+#endif

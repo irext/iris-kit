@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,37 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_USER_SETTINGS_H
-#define IRIS_KIT_USER_SETTINGS_H
+#ifndef IRIS_KIT_IR_H
+#define IRIS_KIT_IR_H
 
-#include <ArduinoJson.h>
+#include <Arduino.h>
+#include <IRsend.h>
+#include <IRrecv.h>
 
-#include "IRISKit.h"
+#include "ir_decode.h"
 
-#include "ir_ac_control.h"
+void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
 
-/* save settings */
-bool saveSettings();
+void enableIR();
 
-/* load settings */
-bool loadSettings();
+void disableIR();
 
-bool saveACStatus(String file, t_remote_ac_status status);
-t_remote_ac_status getACStatus(String file);
+bool downloadBin(int remote_id);
 
-bool setIrisKitSettings(iris_kit_settings_t& iriskit_settings);
-iris_kit_settings_t getIrisKitSettings();
+bool sendIR(String file_name);
 
-extern StaticJsonDocument<1024> ConfigData;
-extern StaticJsonDocument<1024> ACStatus;
-extern StaticJsonDocument<1024> IrisKitSettings;
+bool emitIR(String timing);
 
-#endif // IRIS_KIT_USER_SETTINGS_H
+bool saveIR(decode_results &results);
+
+bool sendCommand(String file_name, int key);
+
+void sendStatus(String file_name, t_remote_ac_status status);
+
+void recvIR();
+
+bool saveIR(String file_name);
+
+void initAC(String);
+
+#endif // IRIS_KIT_IR_H

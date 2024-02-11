@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,62 +21,27 @@
  * SOFTWARE.
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <MD5Builder.h>
+#ifndef IRIS_KIT_GLOBAL_H
+#define IRIS_KIT_GLOBAL_H
 
-#include "IRISKitUtils.h"
+#include <ArduinoJson.h>
+#include <WiFiManager.h>
+#include <WiFiClient.h>
 
-// public variable definitions
-MD5Builder md5_builder;
+/* goable json variable */
+extern StaticJsonDocument<1024> recv_msg_doc;
+extern StaticJsonDocument<1024> send_msg_doc;
 
-int split_string(const String source, char* parts[], const char* delimiter) {
-    char* pch = NULL;
-    char* copy = NULL;
-    char* tmp = NULL;
-    int i = 0;
+extern WiFiManager wifi_manager;
+extern WiFiClient wifi_client;
 
-    copy = strdup(source.c_str());
-    if (NULL == copy) {
-        goto exit;
-    }
+extern uint8_t ir_send_pin;
+extern uint8_t ir_receive_pin;
+#ifdef USE_RF
+    extern uint8_t rf315_send_pin;
+    extern uint8_t rf315_receive_pin;
+    extern uint8_t rf433_send_pin;
+    extern uint8_t rf433_receive_pin;
+#endif
 
-    pch = strtok(copy, delimiter);
-
-    tmp = strdup(pch);
-    if (NULL == tmp) {
-        goto exit;
-    }
-
-    parts[i++] = tmp;
-
-    while (pch) {
-        pch = strtok(NULL, delimiter);
-        if (NULL == pch) break;
-
-        tmp = strdup(pch);
-        if (NULL == tmp) {
-            goto exit;
-        }
-
-        parts[i++] = tmp;
-    }
-
-    free(copy);
-    return i;
-
-exit:
-    free(copy);
-    for (int j = 0; j < i; j++) {
-        free(parts[j]);
-    }
-    return -1;
-}
-
-String md5(String str) {
-    md5_builder.begin();
-    md5_builder.add(String(str));
-    md5_builder.calculate();
-    return md5_builder.toString();
-}
+#endif // IRIS_KIT_GLOBAL_H

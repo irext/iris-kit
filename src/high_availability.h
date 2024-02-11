@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,14 +21,15 @@
  * SOFTWARE.
  */
 
-#include "WString.h"
+#ifndef IRIS_KIT_HA_H
+#define IRIS_KIT_HA_H
 
-#ifndef IRIS_KIT_UTILS_H
-#define IRIS_KIT_UTILS_H
+#include <WString.h>
 
-int split_string(const String source, char* parts[], const char* delimiter);
+#include "ir_ac_control.h"
 
-String md5(String str);
+void returnACStatus(String filename, t_remote_ac_status ac_status);
 
-#endif // IRIS_KIT_UTILS_H
+void registAC(String filename, bool flag);
 
+#endif // IRIS_KIT_HA_H

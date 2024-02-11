@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,28 +21,14 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_HTTP_H
-#define IRIS_KIT_HTTP_H
+#include <Arduino.h>
+#include <PubSubClient.h>
 
-#include <WString.h>
+#ifndef IRIS_KIT_EMQ_CLIENT_H
+#define IRIS_KIT_EMQ_CLIENT_H
 
-#define URL_SHORT_MAX   (128)
+int connectToEMQXBroker(PubSubClient &mqtt_client);
 
-typedef enum {
-    HTTP_ERROR_SUCCESS = 0,
-    HTTP_ERROR_RESPONSE = 1,
-    HTTP_ERROR_PAYLOAD = 2,
-    HTTP_ERROR_BUSINESS = 3,
-    HTTP_ERROR_LOCAL_SPACE = 4,
-    HTTP_ERROR_GENERIC = 7,
-    HTTP_ERROR_MAX = 15,
-} http_error_t;
+int disconnectFromEMQXBroker(PubSubClient &mqtt_client);
 
-
-// public function export
-http_error_t httpPost(String url, String request_data, String& result);
-
-http_error_t downLoadFile(String url, String file, String path);
-
-
-#endif // IRIS_KIT_HTTP_H
+#endif // IRIS_KIT_EMQ_CLIENT_H

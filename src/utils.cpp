@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,19 +21,62 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_H
-#define IRIS_KIT_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <MD5Builder.h>
 
-#define RUNTIME_RELEASE    (0)
-#define RUNTIME_DEBUG      (1)
+#include "utils.h"
 
-typedef struct {
-    String server_address;
-    String credential_token;
-    String password;
-} iris_kit_settings_t;
+// public variable definitions
+MD5Builder md5_builder;
 
+int split_string(const String source, char* parts[], const char* delimiter) {
+    char* pch = NULL;
+    char* copy = NULL;
+    char* tmp = NULL;
+    int i = 0;
 
-void IRAM_ATTR factoryReset();
+    copy = strdup(source.c_str());
+    if (NULL == copy) {
+        goto exit;
+    }
 
-#endif // IRIS_KIT_H
+    pch = strtok(copy, delimiter);
+
+    tmp = strdup(pch);
+    if (NULL == tmp) {
+        goto exit;
+    }
+
+    parts[i++] = tmp;
+
+    while (pch) {
+        pch = strtok(NULL, delimiter);
+        if (NULL == pch) break;
+
+        tmp = strdup(pch);
+        if (NULL == tmp) {
+            goto exit;
+        }
+
+        parts[i++] = tmp;
+    }
+
+    free(copy);
+    return i;
+
+exit:
+    free(copy);
+    for (int j = 0; j < i; j++) {
+        free(parts[j]);
+    }
+    return -1;
+}
+
+String md5(String str) {
+    md5_builder.begin();
+    md5_builder.add(String(str));
+    md5_builder.calculate();
+    return md5_builder.toString();
+}

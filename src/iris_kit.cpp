@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Author: Strawmanbobi and Caffreyfans
  *
@@ -28,16 +28,16 @@
 #include <Ticker.h>
 
 #include "defines.h"
-#include "IRISKitIR.h"
-#include "IRISKitIoT.h"
-#include "IRISKitHttp.h"
-#include "IRISKitGlobal.h"
-#include "IRISKitIRbaby.h"
-#include "IRISKitSerials.h"
-#include "IRISKitUserSettings.h"
-#include "IRISKitUtils.h"
+#include "ir_emit.h"
+#include "iot_hub.h"
+#include "http_client.h"
+#include "global.h"
+#include "ir_baby.h"
+#include "serials.h"
+#include "user_settings.h"
+#include "utils.h"
 
-#include "IRISKit.h"
+#include "iris_kit.h"
 
 // external variable declarations
 extern char iris_server_address[];
@@ -160,7 +160,7 @@ void setup() {
 
     do {
         if (WiFi.status() == WL_CONNECTED) {
-            if (0 == authIrisKitAccount(iris_credential_token,
+            if (0 == registerIrisKit(iris_credential_token,
                                         iris_password,
                                         g_product_key,
                                         g_device_name,

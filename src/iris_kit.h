@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,27 +21,19 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_GLOBAL_H
-#define IRIS_KIT_GLOBAL_H
+#ifndef IRIS_KIT_H
+#define IRIS_KIT_H
 
-#include <ArduinoJson.h>
-#include <WiFiManager.h>
-#include <WiFiClient.h>
+#define RUNTIME_RELEASE    (0)
+#define RUNTIME_DEBUG      (1)
 
-/* goable json variable */
-extern StaticJsonDocument<1024> recv_msg_doc;
-extern StaticJsonDocument<1024> send_msg_doc;
+typedef struct {
+    String server_address;
+    String credential_token;
+    String password;
+} iris_kit_settings_t;
 
-extern WiFiManager wifi_manager;
-extern WiFiClient wifi_client;
 
-extern uint8_t ir_send_pin;
-extern uint8_t ir_receive_pin;
-#ifdef USE_RF
-    extern uint8_t rf315_send_pin;
-    extern uint8_t rf315_receive_pin;
-    extern uint8_t rf433_send_pin;
-    extern uint8_t rf433_receive_pin;
-#endif
+void IRAM_ATTR factoryReset();
 
-#endif // IRIS_KIT_GLOBAL_H
+#endif // IRIS_KIT_H

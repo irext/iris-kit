@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,10 @@
 
 #include "defines.h"
 
-#include "IRISKitGlobal.h"
-#include "IRISKitSerials.h"
+#include "global.h"
+#include "serials.h"
 
-#include "IRISKitHttp.h"
+#include "http_client.h"
 
 #define HTTP_REQUEST_MAX_RETRY        (5)
 #define HTTP_REQUEST_RETRY_INTERVAL   (200)

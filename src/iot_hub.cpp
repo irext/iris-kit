@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,21 +23,15 @@
 
 #include <Arduino.h>
 #include <WString.h>
-#include <PubSubClient.h>
 
-#include "IRISKitSerials.h"
-#include "IRISKitIoT.h"
-#include "IRISKitIRbaby.h"
-#include "IRISKitGlobal.h"
+#include "serials.h"
+#include "iot_hub.h"
+#include "ir_baby.h"
+#include "global.h"
 
-#include "IRISKit.h"
+#include "emq_client.h"
 
-#define IRIS_KIT_PK_DEV        "a1WlzsJh50b"
-#define IRIS_KIT_PK_REL        "a1ihYt1lqGH"
-#define TOPIC_DOWNSTREAM_DEV   "/user/iris_kit_downstream_dev"
-#define TOPIC_UPSTREAM_DEV     "/user/iris_kit_upstream_dev"
-#define TOPIC_DOWNSTREAM_REL   "/user/iris_kit_downstream"
-#define TOPIC_UPSTREAM_REL     "/user/iris_kit_upstream"
+#include "iris_kit.h"
 
 
 // external variable declarations
@@ -66,8 +60,6 @@ static ep_state_t endpoint_state = FSM_IDLE;
 
 
 // private function declarations
-static int connectToMQTTBroker();
-
 static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
 
 static int iot_retry = 0;
@@ -98,10 +90,7 @@ int connectToIrextIoT() {
           g_mqtt_server.c_str(), g_mqtt_port,
           g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
 
-    mqtt_client.setBufferSize(2048);
-    mqtt_client.setServer(g_mqtt_server.c_str(), g_mqtt_port);
-    mqtt_client.setCallback(irisIrextIoTCallback);
-    conn_ret = connectToMQTTBroker();
+    conn_ret = connectToEMQXBroker(mqtt_client);
 
     if (0 != conn_ret) {
         ERRORLN("Something may went wrong with your credential, please retry connect to Wifi...");
@@ -117,7 +106,7 @@ int connectToIrextIoT() {
 
 void irextIoTKeepAlive() {
     if (!mqtt_client.connected()) {
-        connectToMQTTBroker();
+        connectToEMQXBroker(mqtt_client);
     }
     mqtt_client.loop();
 }
@@ -134,38 +123,5 @@ void* getSession() {
 void checkIrextIoT() {
     if (mqtt_client.connected()) {
         sendIrisKitHeartBeat();
-    }
-}
-
-
-// private function definitions
-static int connectToMQTTBroker() {
-    int retry_times = 0;
-
-    while (!mqtt_client.connected() && retry_times < MQTT_RETRY_MAX) {
-        INFOF("Connecting to MQTT Broker as %s.....\n", g_mqtt_client_id.c_str());
-        if (mqtt_client.connect(g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.c_str())) {
-            INFOF("Connected to MQTT broker\n");
-            mqtt_client.subscribe(g_downstream_topic.c_str());
-        } else {
-            ERRORF("Failed to connect to MQTT broker, rc = %d\n", mqtt_client.state());
-            INFOF(" try again in 5 seconds\n");
-            retry_times++;
-            delay(MQTT_RETRY_DELAY);
-        }
-    }
-    if (mqtt_client.connected()) {
-        INFOF("IRext IoT connect done\n");
-        return 0;
-    } else {
-        ERRORF("IRext IoT failed to connect\n");
-        return -1;
-    }
-}
-
-static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length) {
-    INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
-    if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
-        handleIrisKitMessage((const char*) data, length);
     }
 }

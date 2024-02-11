@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,14 +25,14 @@
 
 #include "defines.h"
 
-#include "IRISKitGlobal.h"
-#include "IRISKitSerials.h"
-#include "IRISKitUserSettings.h"
-#include "IRISKitIRbaby.h"
-#include "IRISKitHttp.h"
-#include "IRISKitUtils.h"
+#include "global.h"
+#include "serials.h"
+#include "user_settings.h"
+#include "ir_baby.h"
+#include "http_client.h"
+#include "utils.h"
 
-#include "IRISKitIR.h"
+#include "ir_emit.h"
 
 #define IR_SERIES_MAX    (1024)
 #define IR_END_CODE      (10000)

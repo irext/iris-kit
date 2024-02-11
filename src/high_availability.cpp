@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +21,10 @@
  * SOFTWARE.
  */
 
-#include "IRISKitGlobal.h"
-#include "IRISKitSerials.h"
+#include "global.h"
+#include "serials.h"
 
-#include "IRISKitHA.h"
+#include "high_availability.h"
 
 void returnACStatus(String filename, t_remote_ac_status ac_status) {
     send_msg_doc.clear();

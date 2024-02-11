@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,11 @@
 #include <WiFiManager.h>
 
 #include "defines.h"
-#include "IRISKitGlobal.h"
-#include "IRISKitSerials.h"
-#include "IRISKitIR.h"
+#include "global.h"
+#include "serials.h"
+#include "ir_emit.h"
 
-#include "IRISKitUserSettings.h"
+#include "user_settings.h"
 
 
 #define FILE_GENERIC_CONFIG      "config"

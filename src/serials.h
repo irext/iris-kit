@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,29 +21,34 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_IOT_H
-#define IRIS_KIT_IOT_H
+#ifndef IRIS_KIT_SERIALS_H
+#define IRIS_KIT_SERIALS_H
 
-#include <stdint.h>
+#include <Arduino.h>
 
-typedef enum {
-    FSM_IDLE = 0,
-    FSM_CONNECTED = 1,
-    FSM_ACTIVE = 2,
+#include "defines.h"
 
-    FSM_MAX = 7,
-} ep_state_t;
+// generic COM debug
 
-int connectToIrextIoT();
+#define DEBUGLN(...) \
+    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.println(__VA_ARGS__);}}
+#define DEBUGF(...) \
+    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.printf(__VA_ARGS__);}}
+#define DEBUG(...)  \
+    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.print(__VA_ARGS__);}}
 
-void irextIoTKeepAlive();
+#define INFOLN(...) \
+    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.println(__VA_ARGS__);}}
+#define INFOF(...) \
+    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.printf(__VA_ARGS__);}}
+#define INFO(...)  \
+    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.print(__VA_ARGS__);}}
 
-void checkIrextIoT();
+#define ERRORLN(...) \
+    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.println(__VA_ARGS__);}}
+#define ERRORF(...) \
+    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.printf(__VA_ARGS__);}}
+#define ERROR(...)  \
+    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.print(__VA_ARGS__);}}
 
-void* getSession();
-
-void sendData(const char* topic, const uint8_t *data, int length);
-
-int securityPublish(const char *topic, const uint8_t *message, size_t msg_size, void *channel);
-
-#endif // IRIS_KIT_IOT_H
+#endif // IRIS_KIT_SERIALS_H

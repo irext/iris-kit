@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2022 IRbaby-IRext
+ * Copyright (c) 2020-2024 IRbaby-IRext
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,34 +21,36 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_SERIALS_H
-#define IRIS_KIT_SERIALS_H
+#ifndef IRIS_KIT_IOT_H
+#define IRIS_KIT_IOT_H
 
-#include <Arduino.h>
+#include <stdint.h>
 
-#include "defines.h"
+#define IRIS_KIT_PK_DEV        "a1WlzsJh50b"
+#define IRIS_KIT_PK_REL        "a1ihYt1lqGH"
+#define TOPIC_DOWNSTREAM_DEV   "/user/iris_kit_downstream_dev"
+#define TOPIC_UPSTREAM_DEV     "/user/iris_kit_upstream_dev"
+#define TOPIC_DOWNSTREAM_REL   "/user/iris_kit_downstream"
+#define TOPIC_UPSTREAM_REL     "/user/iris_kit_upstream"
 
-// generic COM debug
+typedef enum {
+    FSM_IDLE = 0,
+    FSM_CONNECTED = 1,
+    FSM_ACTIVE = 2,
 
-#define DEBUGLN(...) \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.println(__VA_ARGS__);}}
-#define DEBUGF(...) \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.printf(__VA_ARGS__);}}
-#define DEBUG(...)  \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG:\t"); Serial.print(__VA_ARGS__);}}
+    FSM_MAX = 7,
+} ep_state_t;
 
-#define INFOLN(...) \
-    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.println(__VA_ARGS__);}}
-#define INFOF(...) \
-    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.printf(__VA_ARGS__);}}
-#define INFO(...)  \
-    {if (LOG_INFO) { Serial.printf("INFO:\t"); Serial.print(__VA_ARGS__);}}
+int connectToIrextIoT();
 
-#define ERRORLN(...) \
-    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.println(__VA_ARGS__);}}
-#define ERRORF(...) \
-    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.printf(__VA_ARGS__);}}
-#define ERROR(...)  \
-    {if (LOG_ERROR) { Serial.printf("ERROR:\t"); Serial.print(__VA_ARGS__);}}
+void irextIoTKeepAlive();
 
-#endif // IRIS_KIT_SERIALS_H
+void checkIrextIoT();
+
+void* getSession();
+
+void sendData(const char* topic, const uint8_t *data, int length);
+
+int securityPublish(const char *topic, const uint8_t *message, size_t msg_size, void *channel);
+
+#endif // IRIS_KIT_IOT_H
