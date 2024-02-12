@@ -1,6 +1,6 @@
 /**
  *
- *  Filename:      AliyunIoTSDK.cpp
+ *  Filename:      aliyun_iot_sdk.cpp
  *
  *  Description:   basic SDK for ESP32
  *
@@ -10,9 +10,10 @@
  *
  **/
 
-#include "AliyunIoTSDK.h"
 #include <PubSubClient.h>
 #include <SHA256.h>
+
+#include "aliyun_iot_sdk.h"
 
 #define CHECK_INTERVAL 30000
 #define MESSAGE_BUFFER_SIZE 10
@@ -148,12 +149,12 @@ int AliyunIoTSDK::mqttCheckConnect() {
     return mqttStatus;
 }
 
-int AliyunIoTSDK::begin(Client &espClient,
+int AliyunIoTSDK::begin(PubSubClient &mqttClient,
                          const char *_productKey,
                          const char *_deviceName,
                          const char *_deviceSecret,
                          const char *_region) {
-    client = new PubSubClient(espClient);
+    client = new PubSubClient(mqttClient);
     productKey = _productKey;
     deviceName = _deviceName;
     deviceSecret = _deviceSecret;

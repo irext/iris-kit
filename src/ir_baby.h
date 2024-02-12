@@ -29,7 +29,7 @@
 #define PASSWORD_MAX                 (64)
 
 // web http call URL list
-#define GET_IRIS_KIT_ACCOUNT_SUFFIX  "/irext-collect/credentials/auth_iris_kit_account"
+#define GET_IRIS_KIT_ACCOUNT_SUFFIX  "/irext-collect/credentials/auth_iris_kit"
 #define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
 #define DOWNLOAD_BIN_SUFFIX          "/irext-collect/download"
 #define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
@@ -52,7 +52,7 @@ int getIRISKitVersion(char *buffer, int buffer_size);
 
 String getDeviceID();
 
-int registerIrisKit(String credential_token,
+int authIrisKit(String credential_token,
                        String password,
                        String& product_key,
                        String& device_name,

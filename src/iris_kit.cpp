@@ -160,12 +160,12 @@ void setup() {
 
     do {
         if (WiFi.status() == WL_CONNECTED) {
-            if (0 == registerIrisKit(iris_credential_token,
-                                        iris_password,
-                                        g_product_key,
-                                        g_device_name,
-                                        g_device_secret,
-                                        g_app_id)) {
+            if (0 == authIrisKit(iris_credential_token,
+                                 iris_password,
+                                 g_product_key,
+                                 g_device_name,
+                                 g_device_secret,
+                                 g_app_id)) {
                 break;
             }
         }

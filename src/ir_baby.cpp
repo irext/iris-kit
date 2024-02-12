@@ -104,7 +104,7 @@ String getDeviceID() {
     return device_id;
 }
 
-int registerIrisKit(String credential_token,
+int authIrisKit(String credential_token,
                     String password,
                     String& product_key,
                     String& device_name,
@@ -160,10 +160,9 @@ int registerIrisKit(String credential_token,
             int resultCode = http_response_doc["status"]["code"];
             if (0 == resultCode) {
                 INFOLN("response valid, try getting entity");
-                device_secret = (const char*) http_response_doc["entity"]["deviceSecret"];
+                device_secret = (const char*) http_response_doc["entity"]["deviceToken"];
                 app_id = (int) http_response_doc["entity"]["appId"];
-                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n",
-                    product_key.c_str(), device_name.c_str(), device_secret.c_str());
+                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n", product_key.c_str(), device_name.c_str(), device_secret.c_str());
                 ret = 0;
             } else {
                 INFOF("response invalid, code = %d\n", resultCode);

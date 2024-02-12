@@ -1,6 +1,6 @@
 /**
  *
- *  Filename:      AliyunIoTSDK.h
+ *  Filename:      aliyun_iot_sdk.h
  *
  *  Description:   header file of basic SDK for ESP32
  *
@@ -58,13 +58,13 @@ public:
 
   /**
    * Initialize and connect to AliyunIoT
-   * @param espClient : WiFi client
+   * @param mqttClient : PubSubClient
    * @param _productKey : AliyunIoT product key
    * @param _deviceName : AliyunIoT device name
    * @param _deviceSecret : AliyunIoT device secret
    * @param _region : AliyunIoT region
    */
-  static int begin(Client &espClient,
+  static int begin(PubSubClient &mqttClient,
                    const char *_productKey,
                    const char *_deviceName,
                    const char *_deviceSecret,

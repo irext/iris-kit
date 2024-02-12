@@ -49,6 +49,8 @@ String g_mqtt_user_name = "";
 String g_mqtt_password = "";
 String g_upstream_topic = "";
 String g_downstream_topic = "";
+
+String g_aliot_region = "cn-shanghai";
 int g_mqtt_port = 1883;
 
 int g_app_id = 0;
