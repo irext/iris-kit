@@ -26,7 +26,7 @@
 
 #include "serials.h"
 #include "iot_hub.h"
-#include "ir_baby.h"
+#include "iris_client.h"
 #include "global.h"
 
 #include "emq_client.h"
@@ -43,6 +43,7 @@ String g_mqtt_server = "";
 String g_product_key = "";
 String g_device_name = "";
 String g_device_secret = "";
+String g_device_token = "";
 
 String g_mqtt_client_id = "";
 String g_mqtt_user_name = "";
@@ -51,6 +52,7 @@ String g_upstream_topic = "";
 String g_downstream_topic = "";
 
 String g_aliot_region = "cn-shanghai";
+String g_aliot_instance_id = "iot-060a2sie";
 int g_mqtt_port = 1883;
 
 int g_app_id = 0;

@@ -32,7 +32,7 @@
 #include "iot_hub.h"
 #include "http_client.h"
 #include "global.h"
-#include "ir_baby.h"
+#include "iris_client.h"
 #include "serials.h"
 #include "user_settings.h"
 #include "utils.h"
@@ -48,6 +48,7 @@ extern String g_mqtt_server;
 extern String g_product_key;
 extern String g_device_name;
 extern String g_device_secret;
+extern String g_device_token;
 extern String g_mqtt_client_id;
 extern String g_mqtt_password;
 extern int g_app_id;
@@ -165,6 +166,7 @@ void setup() {
                                  g_product_key,
                                  g_device_name,
                                  g_device_secret,
+                                 g_device_token,
                                  g_app_id)) {
                 break;
             }

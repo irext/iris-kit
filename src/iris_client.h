@@ -57,6 +57,7 @@ int authIrisKit(String credential_token,
                        String& product_key,
                        String& device_name,
                        String& device_secret,
+                       String& device_token,
                        int& app_id);
 
 void sendIrisKitConnect();

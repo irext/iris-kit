@@ -62,12 +62,14 @@ public:
    * @param _productKey : AliyunIoT product key
    * @param _deviceName : AliyunIoT device name
    * @param _deviceSecret : AliyunIoT device secret
+   * @param _iotInstanceId : AliyunIoT instance ID
    * @param _region : AliyunIoT region
    */
   static int begin(PubSubClient &mqttClient,
                    const char *_productKey,
                    const char *_deviceName,
                    const char *_deviceSecret,
+                   const char *_iotInstanceId,
                    const char *_region);
 
   /**

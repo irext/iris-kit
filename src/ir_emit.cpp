@@ -28,7 +28,7 @@
 #include "global.h"
 #include "serials.h"
 #include "user_settings.h"
-#include "ir_baby.h"
+#include "iris_client.h"
 #include "http_client.h"
 #include "utils.h"
 

@@ -15,7 +15,9 @@
         "memory_resource": "cpp",
         "system_error": "cpp",
         "*.tcc": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "string.h": "c",
+        "arduino.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

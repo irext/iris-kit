@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_IR_H
-#define IRIS_KIT_IR_H
+#ifndef IRIS_KIT_EMIT_H
+#define IRIS_KIT_EMIT_H
 
 #include <Arduino.h>
 #include <IRsend.h>
@@ -54,4 +54,4 @@ bool saveIR(String file_name);
 
 void initAC(String);
 
-#endif // IRIS_KIT_IR_H
+#endif // IRIS_KIT_EMIT_H

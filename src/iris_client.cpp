@@ -37,7 +37,7 @@
 #include "http_client.h"
 #include "ir_emit.h"
 
-#include "ir_baby.h"
+#include "iris_client.h"
 
 
 extern StaticJsonDocument<1024> http_request_doc;
@@ -109,6 +109,7 @@ int authIrisKit(String credential_token,
                     String& product_key,
                     String& device_name,
                     String& device_secret,
+                    String& device_token,
                     int& app_id) {
     int ret = -1;
     int tsi = -1;
@@ -160,9 +161,11 @@ int authIrisKit(String credential_token,
             int resultCode = http_response_doc["status"]["code"];
             if (0 == resultCode) {
                 INFOLN("response valid, try getting entity");
-                device_secret = (const char*) http_response_doc["entity"]["deviceToken"];
+                // for aliot connection, use deviceToken as deviceSecret
+                device_token = (const char*) http_response_doc["entity"]["deviceToken"];
                 app_id = (int) http_response_doc["entity"]["appId"];
-                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s\n", product_key.c_str(), device_name.c_str(), device_secret.c_str());
+                INFOF("HTTP response deserialized, PK = %s, DN = %s, DS = %s, DT = %s\n",
+                    product_key.c_str(), device_name.c_str(), device_secret.c_str(), device_token.c_str());
                 ret = 0;
             } else {
                 INFOF("response invalid, code = %d\n", resultCode);

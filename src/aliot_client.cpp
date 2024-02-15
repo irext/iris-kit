@@ -25,7 +25,7 @@
 
 #include "serials.h"
 #include "iot_hub.h"
-#include "ir_baby.h"
+#include "iris_client.h"
 
 #include "aliyun_iot_sdk.h"
 
@@ -45,6 +45,7 @@ extern String g_downstream_topic;
 extern int g_mqtt_port;
 
 extern String g_aliot_region;
+extern String g_aliot_instance_id;
 
 
 // private variable definitions
@@ -55,7 +56,8 @@ static AliyunIoTSDK iot;
 // public function definitions
 int connectToAliyunIoT(PubSubClient &mqtt_client) {
 
-    if (0 == iot.begin(mqtt_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(), g_aliot_region.c_str())) {
+    if (0 == iot.begin(mqtt_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
+                       g_aliot_instance_id.c_str(), g_aliot_region.c_str())) {
         sendIrisKitConnect();
     }
     INFOLN("Aliyun IoT connected");

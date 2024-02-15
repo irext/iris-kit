@@ -23,6 +23,7 @@ static const char *deviceName = NULL;
 static const char *productKey = NULL;
 static const char *deviceSecret = NULL;
 static const char *region = NULL;
+static const char *iotInstanceId = NULL;
 
 struct DeviceProperty {
     String key;
@@ -90,7 +91,7 @@ static void parmPass(JsonVariant parm) {
 }
 
 static void callback(char *topic, byte *payload, unsigned int length) {
-    Serial.print("Message arrived [");
+    Serial.print("INFO\tMessage arrived [");
     Serial.print(topic);
     Serial.print("] ");
     payload[length] = '\0';
@@ -153,12 +154,15 @@ int AliyunIoTSDK::begin(PubSubClient &mqttClient,
                          const char *_productKey,
                          const char *_deviceName,
                          const char *_deviceSecret,
+                         const char *_iotInstanceId,
                          const char *_region) {
     client = new PubSubClient(mqttClient);
     productKey = _productKey;
     deviceName = _deviceName;
     deviceSecret = _deviceSecret;
+    iotInstanceId = _iotInstanceId;
     region = _region;
+    int port = 443;
     long times = millis();
     String timestamp = String(times);
 
@@ -183,13 +187,20 @@ int AliyunIoTSDK::begin(PubSubClient &mqttClient,
     sprintf(ALINK_TOPIC_PROP_SET, "/sys/%s/%s/thing/service/property/set", productKey, deviceName);
     sprintf(ALINK_TOPIC_EVENT, "/sys/%s/%s/thing/event", productKey, deviceName);
 
-    sprintf(domain, "%s.iot-as-mqtt.%s.aliyuncs.com", productKey, region);
-    client->setServer(domain, MQTT_PORT);
+    if (NULL != iotInstanceId) {
+        sprintf(domain, "%s.mqtt.iothub.aliyuncs.com", productKey);
+        port = 443;
+    } else {
+        sprintf(domain, "%s.iot-as-mqtt.%s.aliyuncs.com", productKey, region);
+        port = 1883;
+    }
+    
+    client->setServer(domain, port);
 
 #if defined USE_STANDARD_THING_MODEL_TOPIC
     client->setCallback(callback);
 #endif
-    Serial.print("connection check in begin\n");
+    Serial.print("INFO\tconnection check in begin\n");
     return mqttCheckConnect();
 }
 
@@ -199,8 +210,6 @@ int AliyunIoTSDK::loop() {
     if (millis() - lastMs >= CHECK_INTERVAL) {
         lastMs = millis();
         mqttStatus = mqttCheckConnect();
-        // Serial.print("MQTT connect return: ");
-        // Serial.println(mqttStatus);
     }
 
     if (0 == mqttStatus) {
@@ -215,9 +224,10 @@ void AliyunIoTSDK::sendEvent(const char *eventId, const char *param) {
     snprintf(topicKey, sizeof(topicKey) - 1, "%d/%s/post", 0, eventId);
     char jsonBuf[1024];
     sprintf(jsonBuf, ALINK_EVENT_BODY_FORMAT, param, eventId);
+    Serial.print("INFO\tsend : ");
     Serial.println(jsonBuf);
     boolean d = client->publish(topicKey, jsonBuf);
-    Serial.print("publish: 0 successfully: ");
+    Serial.print("INFO\tpublish : 0 successfully : ");
     Serial.println(d);
 }
 
@@ -227,13 +237,13 @@ void AliyunIoTSDK::sendEvent(const char *eventId) {
 
 void AliyunIoTSDK::sendCustom(const char *topic, const char *eventBody) {
     boolean d = client->publish(topic, eventBody);
-    Serial.print("publish:0 sucessfully:");
+    Serial.print("INFO\tpublish : 0 sucessfully : ");
     Serial.println(d);
 }
 
 void AliyunIoTSDK::sendCustomData(const char *topic, const uint8_t *data, int length) {
     boolean d = client->publish(topic, data, length);
-    Serial.print("publish:0 sucessfully:");
+    Serial.print("INFO\tpublish : 0 sucessfully : ");
     Serial.println(d);
 }
 
@@ -255,8 +265,6 @@ void AliyunIoTSDK::messageBufferCheck() {
             bufferSize++;
         }
     }
-    // Serial.println("bufferSize:");
-    // Serial.println(bufferSize);
     if (bufferSize > 0) {
         if (bufferSize >= MESSAGE_BUFFER_SIZE) {
             sendBuffer();
@@ -301,9 +309,10 @@ void addMessageToBuffer(char *key, String value) {
 void AliyunIoTSDK::send(const char *param) {
     char jsonBuf[1024];
     sprintf(jsonBuf, ALINK_BODY_FORMAT, param);
+    Serial.print("INFO\tsend : ");
     Serial.println(jsonBuf);
     boolean d = client->publish(ALINK_TOPIC_PROP_POST, jsonBuf);
-    Serial.print("publish:0 sucessfully:");
+    Serial.print("INFO\tpublish : 0 sucessfully : ");
     Serial.println(d);
 }
 
