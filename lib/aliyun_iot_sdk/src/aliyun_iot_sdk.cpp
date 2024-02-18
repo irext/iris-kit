@@ -15,9 +15,9 @@
 
 #include "aliyun_iot_sdk.h"
 
-#define CHECK_INTERVAL 30000
-#define MESSAGE_BUFFER_SIZE 10
-#define MQTT_CONNECT_RETRY_MAX 3
+#define CHECK_INTERVAL          (30000)
+#define MESSAGE_BUFFER_SIZE     (10)
+#define MQTT_CONNECT_RETRY_MAX  (3)
 
 static const char *deviceName = NULL;
 static const char *productKey = NULL;
@@ -31,8 +31,6 @@ struct DeviceProperty {
 };
 
 DeviceProperty PropertyMessageBuffer[MESSAGE_BUFFER_SIZE];
-
-#define MQTT_PORT 1883
 
 #define SHA256HMAC_SIZE 32
 #define DATA_CALLBACK_SIZE 20
@@ -50,33 +48,21 @@ static PubSubClient *client = NULL;
 static pointerDesc pointerArray[20];
 static pPointerDesc pPointerArray;
 
-char AliyunIoTSDK::clientId[256] = "";
-char AliyunIoTSDK::mqttUsername[100] = "";
-char AliyunIoTSDK::mqttPwd[256] = "";
-char AliyunIoTSDK::domain[150] = "";
+char AliyunIoTSDK::clientId[CLIENT_ID_MAX_LEN] = "";
+char AliyunIoTSDK::mqttUsername[USER_NAME_MAX_LEN] = "";
+char AliyunIoTSDK::mqttPwd[PASSWORD_MAX_LEN] = "";
+char AliyunIoTSDK::domain[DOMAIN_NAME_MAX_LEN] = "";
 
 char AliyunIoTSDK::ALINK_TOPIC_PROP_POST[150] = "";
 char AliyunIoTSDK::ALINK_TOPIC_PROP_SET[150] = "";
 char AliyunIoTSDK::ALINK_TOPIC_EVENT[150] = "";
 
-static String hmac256(const String &signcontent, const String &ds) {
-    byte hashCode[SHA256HMAC_SIZE];
-    SHA256 sha256;
-
-    const char *key = ds.c_str();
-    size_t keySize = ds.length();
-
-    sha256.resetHMAC(key, keySize);
-    sha256.update((const byte *)signcontent.c_str(), signcontent.length());
-    sha256.finalizeHMAC(key, keySize, hashCode, sizeof(hashCode));
-
-    String sign = "";
-    for (byte i = 0; i < SHA256HMAC_SIZE; ++i) {
-        sign += "0123456789ABCDEF"[hashCode[i] >> 4];
-        sign += "0123456789ABCDEF"[hashCode[i] & 0xf];
-    }
-
-    return sign;
+static long long getTimeMills(void) {
+    static uint32_t low32, high32;
+    uint32_t new_low32 = millis();
+    if (new_low32 < low32) high32++;
+    low32 = new_low32;
+    return (uint64_t) high32 << 32 | low32;
 }
 
 static void parmPass(JsonVariant parm) {
@@ -131,15 +117,19 @@ int AliyunIoTSDK::mqttCheckConnect() {
                 if (client->connect(clientId, mqttUsername, mqttPwd)) {
                     Serial.println("INFO:\tMQTT Connected!");
                 } else {
-                    Serial.print("ERROR:\tMQTT Connect err: ");
+                    Serial.print("ERROR:\tMQTT Connect err : ");
                     Serial.println(client->state());
+                    Serial.print("ERROR:\tusername : ");
+                    Serial.println(mqttUsername);
+                    Serial.print("ERROR:\tpassword : ");
+                    Serial.println(mqttPwd);
                     delay(MQTT_WAIT_GENERIC);
                     connectRetry++;
-                    Serial.print("INFO:\tretry: ");
+                    Serial.print("INFO:\tretry : ");
                     Serial.println(connectRetry);
                     mqttStatus = -1;
                     if (connectRetry > MQTT_CONNECT_RETRY_MAX) {
-                        Serial.println("ERROR:\t max connect retry times reached");
+                        Serial.println("ERROR:\tmax connect retry times reached");
                         break;
                     }
                 }
@@ -151,6 +141,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
 }
 
 int AliyunIoTSDK::begin(PubSubClient &mqttClient,
+                         const char *_clientId,
                          const char *_productKey,
                          const char *_deviceName,
                          const char *_deviceSecret,
@@ -162,39 +153,40 @@ int AliyunIoTSDK::begin(PubSubClient &mqttClient,
     deviceSecret = _deviceSecret;
     iotInstanceId = _iotInstanceId;
     region = _region;
-    int port = 443;
-    long times = millis();
-    String timestamp = String(times);
+    uint16_t port = 443;
 
-    sprintf(clientId, "%s|securemode=3,signmethod=hmacsha256,timestamp=%s|", deviceName,
-            timestamp.c_str());
+    int res = 0;
 
-    String signcontent = "clientId";
-    signcontent += deviceName;
-    signcontent += "deviceName";
-    signcontent += deviceName;
-    signcontent += "productKey";
-    signcontent += productKey;
-    signcontent += "timestamp";
-    signcontent += timestamp;
+    res = aliot_mqtt_sign(productKey, deviceName, deviceSecret, _clientId,
+        clientId, CLIENT_ID_MAX_LEN, mqttUsername, USER_NAME_MAX_LEN, mqttPwd, PASSWORD_MAX_LEN);
 
-    String pwd = hmac256(signcontent, deviceSecret);
+    if (0 != res) {
+        Serial.println("ERROR\tfailed to sign aliot mqtt params");
+        return -1;
+    }
+    Serial.print("DEBUG\tMQTT clietnId = ");
+    Serial.println(clientId);
+    Serial.print("DEBUG\tMQTT userName = ");
+    Serial.println(mqttUsername);
+    Serial.print("DEBUG\tMQTT password = ");
+    Serial.println(mqttPwd);
 
-    strcpy(mqttPwd, pwd.c_str());
-
-    sprintf(mqttUsername, "%s&%s", deviceName, productKey);
     sprintf(ALINK_TOPIC_PROP_POST, "/sys/%s/%s/thing/event/property/post", productKey, deviceName);
     sprintf(ALINK_TOPIC_PROP_SET, "/sys/%s/%s/thing/service/property/set", productKey, deviceName);
     sprintf(ALINK_TOPIC_EVENT, "/sys/%s/%s/thing/event", productKey, deviceName);
 
     if (NULL != iotInstanceId) {
-        sprintf(domain, "%s.mqtt.iothub.aliyuncs.com", productKey);
-        port = 443;
+        sprintf(domain, "%s.mqtt.iothub.aliyuncs.com", iotInstanceId);
+        port = 1883;
     } else {
         sprintf(domain, "%s.iot-as-mqtt.%s.aliyuncs.com", productKey, region);
         port = 1883;
     }
     
+    Serial.print("INFO\tconnect to aliyun : ");
+    Serial.print(domain);
+    Serial.print(":");
+    Serial.println(port);
     client->setServer(domain, port);
 
 #if defined USE_STANDARD_THING_MODEL_TOPIC

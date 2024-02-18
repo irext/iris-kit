@@ -30,8 +30,10 @@
 #include "global.h"
 
 #include "emq_client.h"
-
+#include "aliot_client.h"
 #include "iris_kit.h"
+
+#include "iot_hub.h"
 
 
 // external variable declarations
@@ -88,13 +90,19 @@ int connectToIrextIoT() {
         return -1;
     }
 
+    // g_mqtt_user_name act as clientId for aliot and as userName for EMQX
     g_mqtt_user_name = getDeviceID();
 
-    INFOF("Try connecting to IRext IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
-          g_mqtt_server.c_str(), g_mqtt_port,
-          g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
+    INFOF("Try connecting to AliyunIoT, product_key = %s, device_name = %s, device_secret = %s\n",
+            g_product_key.c_str(), g_device_name.c_str(), g_device_token.c_str());
+    conn_ret = connectToAliot(mqtt_client);
 
-    conn_ret = connectToEMQXBroker(mqtt_client);
+    if (0 != conn_ret) {
+        INFOF("Try connecting to IRext IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
+            g_mqtt_server.c_str(), g_mqtt_port,
+            g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
+        conn_ret = connectToEMQXBroker(mqtt_client);
+    }
 
     if (0 != conn_ret) {
         ERRORLN("Something may went wrong with your credential, please retry connect to Wifi...");

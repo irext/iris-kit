@@ -22,7 +22,6 @@
  */
 
 #include "defines.h"
-
 #include "serials.h"
 #include "iot_hub.h"
 #include "iris_client.h"
@@ -54,14 +53,17 @@ static AliyunIoTSDK iot;
 
 
 // public function definitions
-int connectToAliyunIoT(PubSubClient &mqtt_client) {
+int connectToAliot(PubSubClient &mqtt_client) {
+    String aliot_client_id = g_product_key + "." + g_device_name;
 
-    if (0 == iot.begin(mqtt_client, g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
-                       g_aliot_instance_id.c_str(), g_aliot_region.c_str())) {
-        sendIrisKitConnect();
+    int res = iot.begin(mqtt_client, aliot_client_id.c_str(), g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
+                       g_aliot_instance_id.c_str(), g_aliot_region.c_str());
+    if (0 == res) {
+        INFOLN("Aliyun IoT connected");
+    } else {
+        ERRORLN("Failed to connect to Aliyun IoT");
     }
-    INFOLN("Aliyun IoT connected");
-    return 0;
+    return res;
 }
 
 void aliotKeepAlive() {

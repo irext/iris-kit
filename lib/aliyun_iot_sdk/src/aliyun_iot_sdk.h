@@ -18,9 +18,13 @@
 #include <PubSubClient.h>
 #include "Client.h"
 
+#include "aliot_mqtt_sign.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define DOMAIN_NAME_MAX_LEN     (256)
 
 typedef void (*funcPointer)(JsonVariant ele);
 
@@ -36,10 +40,10 @@ typedef struct {
 class AliyunIoTSDK {
 private:
   // MQTT client related parameters
-  static char mqttPwd[256];
-  static char clientId[256];
-  static char mqttUsername[100];
-  static char domain[150];
+  static char mqttPwd[PASSWORD_MAX_LEN];
+  static char clientId[CLIENT_ID_MAX_LEN];
+  static char mqttUsername[USER_NAME_MAX_LEN];
+  static char domain[DOMAIN_NAME_MAX_LEN];
 
   static void messageBufferCheck();
   static void sendBuffer();
@@ -66,6 +70,7 @@ public:
    * @param _region : AliyunIoT region
    */
   static int begin(PubSubClient &mqttClient,
+                   const char *_clientId,
                    const char *_productKey,
                    const char *_deviceName,
                    const char *_deviceSecret,

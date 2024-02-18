@@ -26,6 +26,7 @@
 #include <Arduino.h>
 #include <LittleFS.h>
 #include <Ticker.h>
+#include <WiFiUdp.h>
 
 #include "defines.h"
 #include "ir_emit.h"
@@ -54,6 +55,8 @@ extern String g_mqtt_password;
 extern int g_app_id;
 
 // public variable definitions
+const unsigned long utcOffsetInMilliSeconds = 3600 * 1000;
+
 int credential_init_retry = 0;
 int g_runtime_env = RUNTIME_RELEASE;
 iris_kit_settings_t iriskit_settings;
@@ -65,6 +68,7 @@ static Ticker iotCheckTask;            // IRext IoT MQTT check timer
 static Ticker disableIRTask;           // disable IR receive
 static Ticker disableRFTask;           // disable RF receive
 static Ticker saveDataTask;            // save data
+
 
 // private function declarations
 static void wifiReset();
