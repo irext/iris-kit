@@ -46,7 +46,7 @@ extern int g_mqtt_port;
 
 // private variable definitions
 static bool force_disconnected = false;
-
+static PubSubClient* emqx_client = NULL;
 
 // private function declarations
 static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
@@ -56,24 +56,25 @@ static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
 int connectToEMQXBroker(PubSubClient &mqtt_client) {
     int retry_times = 0;
 
-    mqtt_client.setServer(g_mqtt_server.c_str(), g_mqtt_port);
-    mqtt_client.setCallback(irisIrextIoTCallback);
+    if (NULL == emqx_client) {
+        emqx_client = &mqtt_client;
+    }
+    emqx_client->setServer(g_mqtt_server.c_str(), g_mqtt_port);
 
     force_disconnected = false;
 
-    while (!force_disconnected && !mqtt_client.connected() && retry_times < MQTT_RETRY_MAX) {
+    while (!force_disconnected && !emqx_client->connected() && retry_times < MQTT_RETRY_MAX) {
         INFOF("Connecting to MQTT Broker as %s.....\n", g_mqtt_client_id.c_str());
-        if (mqtt_client.connect(g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.c_str())) {
+        if (emqx_client->connect(g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.c_str())) {
             INFOF("Connected to MQTT broker\n");
-            mqtt_client.subscribe(g_downstream_topic.c_str());
         } else {
-            ERRORF("Failed to connect to MQTT broker, rc = %d\n", mqtt_client.state());
+            ERRORF("Failed to connect to MQTT broker, rc = %d\n", emqx_client->state());
             INFOF("Try again in 5 seconds\n");
             retry_times++;
             delay(MQTT_RETRY_DELAY);
         }
     }
-    if (mqtt_client.connected()) {
+    if (emqx_client->connected()) {
         INFOF("IRext IoT connect done\n");
         return 0;
     } else {
@@ -82,17 +83,12 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
     }
 }
 
-int disconnectFromEMQXBroker(PubSubClient &mqtt_client) {
-    force_disconnected = true;
-    mqtt_client.disconnect();
-    return 0;
+void emqxClientKeepAlive() {
+    emqx_client->loop();
 }
 
-
-// private function definitions
-static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length) {
-    INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
-    if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
-        handleIrisKitMessage((const char*) data, length);
-    }
+int disconnectFromEMQXBroker() {
+    force_disconnected = true;
+    emqx_client->disconnect();
+    return 0;
 }

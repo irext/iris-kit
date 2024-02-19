@@ -64,7 +64,7 @@ public:
    * @param _deviceSecret : AliyunIoT device secret
    * @param _region : AliyunIoT region
    */
-  static int begin(Client &espClient,
+  static int begin(PubSubClient &mqtt_client,
                    const char *_productKey,
                    const char *_deviceName,
                    const char *_deviceSecret,
@@ -116,23 +116,6 @@ public:
    * @param eventId : eventId predefined in AliyunIoT
    */
   static void sendEvent(const char *eventId);
-
-  /**
-   * Send customized topic data
-   * 
-   * @param topic : topic in string
-   * @param eventBody : event body in string
-   */
-  static void sendCustom(const char *topic, const char *eventBody);
-
-  /**
-   * Send customized topic payload data
-   * 
-   * @param topic : topic in string
-   * @param data : data payload
-   * @param length : payload length
-   */
-  static void sendCustomData(const char *topic, const uint8_t *data, int length);
 
   /**
    * Subscribe MQTT topic for Aliot

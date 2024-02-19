@@ -33,24 +33,23 @@
 #define TOPIC_DOWNSTREAM_REL   "/user/iris_kit_downstream"
 #define TOPIC_UPSTREAM_REL     "/user/iris_kit_upstream"
 
-typedef enum {
-    FSM_IDLE = 0,
-    FSM_CONNECTED = 1,
-    FSM_ACTIVE = 2,
 
-    FSM_MAX = 7,
-} ep_state_t;
+typedef enum {
+    MQTT_TYPE_ALIOT = 0,
+    MQTT_TYPE_EMQX = 1,
+    MQTT_TYPE_MAX = 7,
+} mqtt_type_t;
 
 int connectToIrextIoT();
 
 void irextIoTKeepAlive();
 
-void checkIrextIoT();
+void checkIrisIoT();
 
 void* getSession();
 
 void sendData(const char* topic, const uint8_t *data, int length);
 
-int securityPublish(const char *topic, const uint8_t *message, size_t msg_size, void *channel);
+void irisIoTCallback(char *topic, uint8_t *data, uint32_t length);
 
 #endif // IRIS_KIT_IOT_H

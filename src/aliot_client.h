@@ -22,12 +22,13 @@
  */
 
 #include <Arduino.h>
+#include <PubSubClient.h>
 
 #ifndef IRIS_KIT_ALIOT_CLIENT_H
 #define IRIS_KIT_ALIOT_CLIENT_H
 
-int connectToAliot();
+int connectToAliot(PubSubClient& mqtt_client);
 
-void aliotKeepAlive();
+void aliotKeepAlive(PubSubClient& mqtt_client);
 
 #endif // IRIS_KIT_ALIOT_CLIENT_H

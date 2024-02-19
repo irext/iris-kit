@@ -58,11 +58,11 @@ String g_aliot_instance_id = "iot-060a2sie";
 int g_mqtt_port = 1883;
 
 int g_app_id = 0;
-
+mqtt_type_t g_mqtt_type = MQTT_TYPE_MAX;
+boolean g_subscribed = false;
 
 // private variable definitions
 static bool downstream_topic_subscribed = false;
-static ep_state_t endpoint_state = FSM_IDLE;
 
 
 // private function declarations
@@ -70,7 +70,7 @@ static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
 
 static int iot_retry = 0;
 
-static PubSubClient mqtt_client(wifi_client);
+static PubSubClient g_mqtt_client(wifi_client);
 
 
 // public function definitions
@@ -95,13 +95,19 @@ int connectToIrextIoT() {
 
     INFOF("Try connecting to AliyunIoT, product_key = %s, device_name = %s, device_secret = %s\n",
             g_product_key.c_str(), g_device_name.c_str(), g_device_token.c_str());
-    conn_ret = connectToAliot();
+    conn_ret = connectToAliot(g_mqtt_client);
 
     if (0 != conn_ret) {
         INFOF("Try connecting to IRext IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
             g_mqtt_server.c_str(), g_mqtt_port,
             g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
-        conn_ret = connectToEMQXBroker(mqtt_client);
+        conn_ret = connectToEMQXBroker(g_mqtt_client);
+        if (0 == conn_ret) {
+            g_mqtt_type = MQTT_TYPE_EMQX;
+        }
+    } else {
+        g_mqtt_type = MQTT_TYPE_ALIOT;
+        
     }
 
     if (0 != conn_ret) {
@@ -110,30 +116,51 @@ int connectToIrextIoT() {
         return -1;
     }
 
+    if (!g_subscribed) {
+        g_mqtt_client.setCallback(irisIoTCallback);
+        g_mqtt_client.subscribe(g_downstream_topic.c_str());
+        g_subscribed = true;
+    }
+
     // send connect request
     sendIrisKitConnect();
 
-    return 0;
+    return conn_ret;
 }
 
 void irextIoTKeepAlive() {
-    if (!mqtt_client.connected()) {
-        connectToEMQXBroker(mqtt_client);
+    if (MQTT_TYPE_ALIOT == g_mqtt_type) {
+        aliotKeepAlive(g_mqtt_client);
+    } else if (MQTT_TYPE_EMQX == g_mqtt_type) {
+        emqxClientKeepAlive();
     }
-    mqtt_client.loop();
+
+    if (!g_mqtt_client.connected()) {
+        g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
+        g_subscribed = false;
+        connectToIrextIoT();
+    }
 }
 
 // not only for IRIS related topic based session
 void sendData(const char* topic, const uint8_t *data, int length) {
-    mqtt_client.publish(topic, data, length);
+    g_mqtt_client.publish(topic, data, length);
 }
 
 void* getSession() {
-    return &mqtt_client;
+    return &g_mqtt_client;
 }
 
-void checkIrextIoT() {
-    if (mqtt_client.connected()) {
+void checkIrisIoT() {
+    if (g_mqtt_client.connected()) {
+        INFOLN("send iris kit heart beat");
         sendIrisKitHeartBeat();
+    }
+}
+
+void irisIoTCallback(char *topic, uint8_t *data, uint32_t length) {
+    INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
+    if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
+        handleIrisKitMessage((const char*) data, length);
     }
 }

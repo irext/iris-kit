@@ -223,7 +223,7 @@ void setup() {
 
     connectToIrextIoT();
 
-    iotCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIrextIoT);
+    iotCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIrisIoT);
     disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
 }
 

@@ -34,7 +34,6 @@ DeviceProperty PropertyMessageBuffer[MESSAGE_BUFFER_SIZE];
 
 #define SHA256HMAC_SIZE 32
 #define DATA_CALLBACK_SIZE 20
-#define SIGN_DEBUG_VERBOSE 1
 
 #define MQTT_WAIT_GENERIC  (10000)
 
@@ -162,12 +161,15 @@ int AliyunIoTSDK::mqttCheckConnect() {
     return mqttStatus;
 }
 
-int AliyunIoTSDK::begin(Client &espClient,
+int AliyunIoTSDK::begin(PubSubClient &mqtt_client,
                          const char *_productKey,
                          const char *_deviceName,
                          const char *_deviceSecret,
                          const char *_region) {
-    client = new PubSubClient(espClient);
+    if (NULL == client) {
+        client = &mqtt_client;
+    }
+
     productKey = _productKey;
     deviceName = _deviceName;
     deviceSecret = _deviceSecret;
@@ -200,7 +202,7 @@ int AliyunIoTSDK::begin(Client &espClient,
     client->setServer(domain, MQTT_PORT);
 
 #if defined USE_STANDARD_THING_MODEL_TOPIC
-    client->setCallback(callback);
+    client.setCallback(callback);
 #endif
     Serial.print("INFO\tconnection check in begin\n");
     return mqttCheckConnect();
@@ -235,18 +237,6 @@ void AliyunIoTSDK::sendEvent(const char *eventId, const char *param) {
 
 void AliyunIoTSDK::sendEvent(const char *eventId) {
     sendEvent(eventId, "{}");
-}
-
-void AliyunIoTSDK::sendCustom(const char *topic, const char *eventBody) {
-    boolean d = client->publish(topic, eventBody);
-    Serial.print("INFO\tpublish:0 sucessfully:");
-    Serial.println(d);
-}
-
-void AliyunIoTSDK::sendCustomData(const char *topic, const uint8_t *data, int length) {
-    boolean d = client->publish(topic, data, length);
-    Serial.print("INFO\tpublish:0 sucessfully:");
-    Serial.println(d);
 }
 
 boolean AliyunIoTSDK::subscribe(const char* topic, int qos) {

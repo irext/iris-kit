@@ -29,6 +29,8 @@
 
 int connectToEMQXBroker(PubSubClient &mqtt_client);
 
-int disconnectFromEMQXBroker(PubSubClient &mqtt_client);
+int disconnectFromEMQXBroker();
+
+void emqxClientKeepAlive();
 
 #endif // IRIS_KIT_EMQ_CLIENT_H
