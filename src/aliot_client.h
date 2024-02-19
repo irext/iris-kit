@@ -23,12 +23,10 @@
 
 #include <Arduino.h>
 
-#include "aliyun_iot_sdk.h"
-
 #ifndef IRIS_KIT_ALIOT_CLIENT_H
 #define IRIS_KIT_ALIOT_CLIENT_H
 
-int connectToAliot(PubSubClient &mqtt_client);
+int connectToAliot();
 
 void aliotKeepAlive();
 

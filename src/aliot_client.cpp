@@ -22,11 +22,12 @@
  */
 
 #include "defines.h"
+#include "global.h"
 #include "serials.h"
 #include "iot_hub.h"
 #include "iris_client.h"
 
-#include "aliyun_iot_sdk.h"
+#include "AliyunIoTSDK.h"
 
 #include "aliot_client.h"
 
@@ -35,6 +36,7 @@ extern String g_mqtt_server;
 extern String g_product_key;
 extern String g_device_name;
 extern String g_device_secret;
+extern String g_device_token;
 
 extern String g_mqtt_client_id;
 extern String g_mqtt_user_name;
@@ -53,11 +55,10 @@ static AliyunIoTSDK iot;
 
 
 // public function definitions
-int connectToAliot(PubSubClient &mqtt_client) {
+int connectToAliot() {
     String aliot_client_id = g_product_key + "." + g_device_name;
 
-    int res = iot.begin(mqtt_client, aliot_client_id.c_str(), g_product_key.c_str(), g_device_name.c_str(), g_device_secret.c_str(),
-                       g_aliot_instance_id.c_str(), g_aliot_region.c_str());
+    int res = iot.begin(wifi_client, g_product_key.c_str(), g_device_name.c_str(), g_device_token.c_str(), g_aliot_region.c_str());
     if (0 == res) {
         INFOLN("Aliyun IoT connected");
     } else {

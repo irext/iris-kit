@@ -56,7 +56,6 @@ static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
 int connectToEMQXBroker(PubSubClient &mqtt_client) {
     int retry_times = 0;
 
-    mqtt_client.setBufferSize(2048);
     mqtt_client.setServer(g_mqtt_server.c_str(), g_mqtt_port);
     mqtt_client.setCallback(irisIrextIoTCallback);
 
@@ -69,7 +68,7 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
             mqtt_client.subscribe(g_downstream_topic.c_str());
         } else {
             ERRORF("Failed to connect to MQTT broker, rc = %d\n", mqtt_client.state());
-            INFOF(" try again in 5 seconds\n");
+            INFOF("Try again in 5 seconds\n");
             retry_times++;
             delay(MQTT_RETRY_DELAY);
         }

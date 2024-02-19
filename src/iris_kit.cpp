@@ -93,7 +93,7 @@ void setup() {
     INFOLN("██║██╔══██╗██║╚════██║");
     INFOLN("██║██║  ██║██║███████║");
     INFOLN("╚═╝╚═╝  ╚═╝╚═╝╚══════╝");
-    INFOLN("== IRIS Kit [1.3.0_r1] Powered by IRBaby ==");
+    INFOLN("== IRIS Kit [1.3.0_r1] Powered by AliyunIoT ==");
 
     // try loading saved iriskit settings
     iriskit_settings.credential_token.clear();

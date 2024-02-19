@@ -95,7 +95,7 @@ int connectToIrextIoT() {
 
     INFOF("Try connecting to AliyunIoT, product_key = %s, device_name = %s, device_secret = %s\n",
             g_product_key.c_str(), g_device_name.c_str(), g_device_token.c_str());
-    conn_ret = connectToAliot(mqtt_client);
+    conn_ret = connectToAliot();
 
     if (0 != conn_ret) {
         INFOF("Try connecting to IRext IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
