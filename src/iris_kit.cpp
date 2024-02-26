@@ -132,23 +132,22 @@ void setup() {
         strncpy(iris_server_address, iriskit_settings.server_address.c_str(), URL_SHORT_MAX - 1);
         strncpy(iris_credential_token, iriskit_settings.credential_token.c_str(), CREDENTIAL_MAX - 1);
         strncpy(iris_password, iriskit_settings.password.c_str(), PASSWORD_MAX - 1);
-    } else {
-        INFOLN("iriskit settings not loaded, set it from WifiManager");
-        server_address =
-            new WiFiManagerParameter("server_address", "Server Address", "iris.irext.net", URL_SHORT_MAX);
-        credential_token =
-            new WiFiManagerParameter("credential_token", "Credential Token", "", CREDENTIAL_MAX);
-        password =
-            new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX, "type='password'");
-
-        if (NULL == server_address || NULL == credential_token || NULL == password) {
-            ERRORLN("not enough memory to create settings");
-            factoryReset();
-        }
-        wifi_manager.addParameter(server_address);
-        wifi_manager.addParameter(credential_token);
-        wifi_manager.addParameter(password);
     }
+    INFOLN("iriskit settings not loaded, set it from WifiManager");
+    server_address =
+        new WiFiManagerParameter("server_address", "Server Address", "iris.irext.net", URL_SHORT_MAX);
+    credential_token =
+        new WiFiManagerParameter("credential_token", "Credential Token", "", CREDENTIAL_MAX);
+    password =
+        new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX, "type='password'");
+
+    if (NULL == server_address || NULL == credential_token || NULL == password) {
+        ERRORLN("not enough memory to create settings");
+        factoryReset();
+    }
+    wifi_manager.addParameter(server_address);
+    wifi_manager.addParameter(credential_token);
+    wifi_manager.addParameter(password);
 
     wifi_manager.autoConnect();
 
