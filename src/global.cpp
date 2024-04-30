@@ -32,6 +32,7 @@ StaticJsonDocument<1024> send_msg_doc;
 StaticJsonDocument<1024> http_request_doc;
 StaticJsonDocument<1024> http_response_doc;
 StaticJsonDocument<2048> emit_code_doc;
+StaticJsonDocument<1024> status_notify_doc;
 
 WiFiManager wifi_manager;
 WiFiClient wifi_client;

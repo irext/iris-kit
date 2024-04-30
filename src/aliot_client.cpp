@@ -46,7 +46,6 @@ extern String g_downstream_topic;
 extern int g_mqtt_port;
 
 extern String g_aliot_region;
-extern String g_aliot_instance_id;
 
 
 // private variable definitions

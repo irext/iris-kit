@@ -44,7 +44,8 @@ extern StaticJsonDocument<1024> http_request_doc;
 extern StaticJsonDocument<1024> http_response_doc;
 extern StaticJsonDocument<1024> iris_msg_doc;
 extern StaticJsonDocument<1024> iris_ind_doc;
-extern StaticJsonDocument<1024> emit_code_doc;
+extern StaticJsonDocument<2048> emit_code_doc;
+extern StaticJsonDocument<1024> status_notify_doc;
 
 extern String g_product_key;
 extern String g_device_name;
@@ -279,6 +280,20 @@ static String buildHeartBeat() {
     return heartBeatMessage;
 }
 
+static String buildTestResponse() {
+    String testResponseBeatMessage = "";
+
+    iris_msg_doc.clear();
+    iris_msg_doc["eventName"] = String(EVENT_NOTIFY_RESP);
+    iris_msg_doc["productKey"] = g_product_key;
+    iris_msg_doc["deviceName"] = g_device_name;
+    iris_msg_doc["appId"] = g_app_id;
+    iris_msg_doc["resp"] = String(NOTIFY_RESP_TEST);
+    serializeJson(iris_msg_doc, testResponseBeatMessage);
+
+    return testResponseBeatMessage;
+}
+
 static int handleConnected(String product_key, String device_name, String content) {
     return 0;
 }
@@ -304,6 +319,23 @@ static int handleEmit(String product_key, String device_name, String content) {
 }
 
 static int handleNotifyStatus(String product_key, String device_name, String content) {
-    INFOF("received emit code : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
+    INFOF("received status change notification : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
+    status_notify_doc.clear();
+    if (DeserializationError::Ok == deserializeJson(status_notify_doc, content)) {
+        int key_id = status_notify_doc["keyId"];
+        String key_name = status_notify_doc["keyName"];
+        int status = status_notify_doc["status"];
+        INFOF("will enter status : %d for %s(%d)\n", status, key_name.c_str(), key_id);
+        if (RECIPIENT_STATUS_TEST == status) {
+            // send response for test notification
+            String testResponseData = buildTestResponse();
+            sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
+        }
+    } else {
+        INFOF("deserialize failed\n");
+    }
+    return 0;
+    // parse status
+
     return 0;
 }

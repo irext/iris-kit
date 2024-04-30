@@ -54,12 +54,12 @@ String g_upstream_topic = "";
 String g_downstream_topic = "";
 
 String g_aliot_region = "cn-shanghai";
-String g_aliot_instance_id = "iot-060a2sie";
 int g_mqtt_port = 1883;
 
 int g_app_id = 0;
 mqtt_type_t g_mqtt_type = MQTT_TYPE_MAX;
 boolean g_subscribed = false;
+unsigned long last_check_time = 0UL;
 
 // private variable definitions
 static bool downstream_topic_subscribed = false;
@@ -135,10 +135,14 @@ void irextIoTKeepAlive() {
         emqxClientKeepAlive();
     }
 
-    if (!g_mqtt_client.connected()) {
-        g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
-        g_subscribed = false;
-        connectToIrextIoT();
+    unsigned long current_time = millis();
+
+    if (current_time - last_check_time > 10000) {
+        if (!g_mqtt_client.connected()) {
+            g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
+            g_subscribed = false;
+            connectToIrextIoT();
+        }
     }
 }
 

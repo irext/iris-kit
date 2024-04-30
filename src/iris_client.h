@@ -28,6 +28,15 @@
 #define USER_NAME_MAX                (64)
 #define PASSWORD_MAX                 (64)
 
+typedef enum {
+    RECIPIENT_STATUS_IDLE = 0,
+    RECIPIENT_STATUS_READY_TO_STUDY = 1,
+    RECIPIENT_STATUS_STUDIED = 2,
+    RECIPIENT_STATUS_UPLOADED = 3,
+    RECIPIENT_STATUS_TEST = 10,
+    RECIPIENT_STATUS_MAX = 63,
+} kit_status_t;
+
 // web http call URL list
 #define GET_IRIS_KIT_ACCOUNT_SUFFIX  "/irext-collect/credentials/auth_iris_kit"
 #define LOAD_ALIOT_ACCOUNT_SUFFIX    "/irext-collect/aliot/load_account"
@@ -41,6 +50,9 @@
 // IRIS communication
 #define EVENT_NAME_CONNECT           "__connect"
 #define EVENT_HEART_BEAT_REQ         "__hb_request"
+#define EVENT_NOTIFY_RESP            "__notify_response"
+
+#define NOTIFY_RESP_TEST             "test_ok"
 
 typedef int (*eventHandler)(String, String, String);
 typedef struct {
