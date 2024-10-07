@@ -280,7 +280,7 @@ static String buildHeartBeat() {
     return heartBeatMessage;
 }
 
-static String buildTestResponse() {
+static String buildTestResponse(int console_id) {
     String testResponseBeatMessage = "";
 
     iris_msg_doc.clear();
@@ -288,6 +288,7 @@ static String buildTestResponse() {
     iris_msg_doc["productKey"] = g_product_key;
     iris_msg_doc["deviceName"] = g_device_name;
     iris_msg_doc["appId"] = g_app_id;
+    iris_msg_doc["consoleId"] = console_id;
     iris_msg_doc["resp"] = String(NOTIFY_RESP_TEST);
     serializeJson(iris_msg_doc, testResponseBeatMessage);
 
@@ -325,10 +326,11 @@ static int handleNotifyStatus(String product_key, String device_name, String con
         int key_id = status_notify_doc["keyId"];
         String key_name = status_notify_doc["keyName"];
         int status = status_notify_doc["status"];
+        int console_id = status_notify_doc["console_id"];
         INFOF("will enter status : %d for %s(%d)\n", status, key_name.c_str(), key_id);
         if (RECIPIENT_STATUS_TEST == status) {
             // send response for test notification
-            String testResponseData = buildTestResponse();
+            String testResponseData = buildTestResponse(console_id);
             sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
         }
     } else {
