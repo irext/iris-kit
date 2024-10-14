@@ -326,7 +326,7 @@ static int handleNotifyStatus(String product_key, String device_name, String con
         int key_id = status_notify_doc["keyId"];
         String key_name = status_notify_doc["keyName"];
         int status = status_notify_doc["status"];
-        int console_id = status_notify_doc["console_id"];
+        int console_id = status_notify_doc["consoleId"];
         INFOF("will enter status : %d for %s(%d)\n", status, key_name.c_str(), key_id);
         if (RECIPIENT_STATUS_TEST == status) {
             // send response for test notification
