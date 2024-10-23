@@ -21,8 +21,8 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_EMIT_H
-#define IRIS_KIT_EMIT_H
+#ifndef IR_DRV_CTRL_H
+#define IR_DRV_CTRL_H
 
 #include <Arduino.h>
 #include <IRsend.h>
@@ -32,9 +32,9 @@
 
 void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
 
-void enableIR();
+void enableIRIn();
 
-void disableIR();
+void disableIRIn();
 
 bool downloadBin(int remote_id);
 
@@ -48,10 +48,16 @@ bool sendCommand(String file_name, int key);
 
 void sendStatus(String file_name, t_remote_ac_status status);
 
+void prepareRecvIR(int key_id, String key_name);
+
+void cancelRecvIR();
+
+void completedRecvIR(int key_id, String key_name);
+
 void recvIR();
 
 bool saveIR(String file_name);
 
 void initAC(String);
 
-#endif // IRIS_KIT_EMIT_H
+#endif // IR_DRV_CTRL_H

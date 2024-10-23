@@ -35,7 +35,7 @@
 #include "serials.h"
 #include "iot_hub.h"
 #include "http_client.h"
-#include "ir_emit.h"
+#include "ir_drv_ctrl.h"
 
 #include "iris_client.h"
 
@@ -66,6 +66,7 @@ static int handleConnected(String product_key, String device_name, String conten
 static int handleHartBeat(String product_key, String device_name, String content);
 static int handleEmit(String product_key, String device_name, String content);
 static int handleNotifyStatus(String product_key, String device_name, String content);
+static int processStatusChange(int status, int console_id, int key_id, String key_name);
 
 static int hb_count = 0;
 
@@ -280,9 +281,8 @@ static String buildHeartBeat() {
     return heartBeatMessage;
 }
 
-static String buildTestResponse(int console_id) {
-    String testResponseBeatMessage = "";
-
+static String buildGeneralResponse(int console_id, String notify_payload) {
+    String notification = "";
     iris_msg_doc.clear();
     iris_msg_doc["eventName"] = String(EVENT_NOTIFY_RESP);
     iris_msg_doc["productKey"] = g_product_key;
@@ -290,9 +290,21 @@ static String buildTestResponse(int console_id) {
     iris_msg_doc["appId"] = g_app_id;
     iris_msg_doc["consoleId"] = console_id;
     iris_msg_doc["resp"] = String(NOTIFY_RESP_TEST);
-    serializeJson(iris_msg_doc, testResponseBeatMessage);
+    serializeJson(iris_msg_doc, notify_payload);
 
-    return testResponseBeatMessage;
+    return notification;
+}
+
+static String buildTestResponse(int console_id) {
+    return buildGeneralResponse(console_id, NOTIFY_RESP_TEST);
+}
+
+static String buildRecvPreparedResponse(int console_id) {
+    return buildGeneralResponse(console_id, NOTIFY_RECV_PREPARED);
+}
+
+static String buildStudyCancelledResponse(int console_id) {
+    return buildGeneralResponse(console_id, NOTIFY_STUDY_CANCELLED);
 }
 
 static int handleConnected(String product_key, String device_name, String content) {
@@ -328,16 +340,43 @@ static int handleNotifyStatus(String product_key, String device_name, String con
         int status = status_notify_doc["status"];
         int console_id = status_notify_doc["consoleId"];
         INFOF("will enter status : %d for %s(%d)\n", status, key_name.c_str(), key_id);
-        if (RECIPIENT_STATUS_TEST == status) {
-            // send response for test notification
-            String testResponseData = buildTestResponse(console_id);
-            sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
-        }
+
+        processStatusChange(status, console_id, key_id, key_name);
     } else {
         INFOF("deserialize failed\n");
     }
     return 0;
-    // parse status
+}
+
+static int processStatusChange(int status, int console_id, int key_id, String key_name) {
+    switch(status) {
+        case RECIPIENT_STATUS_TEST:
+        {
+            // send response for test notification
+            String testResponseData = buildTestResponse(console_id);
+            sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
+            break;
+        }
+        case RECIPIENT_STATUS_READY_TO_STUDY:
+        {
+            // enter into IR receive mode and send response
+            prepareRecvIR(key_id, key_name);
+            String recvPreparedResponseData = buildRecvPreparedResponse(console_id);
+            sendData(g_upstream_topic.c_str(), (uint8_t*) recvPreparedResponseData.c_str(), recvPreparedResponseData.length());
+            break;
+        }
+        case RECIPIENT_STATUS_CANCEL_STUDY:
+        {
+            cancelRecvIR();
+            String studyCancelledResponseData = buildStudyCancelledResponse(console_id);
+            sendData(g_upstream_topic.c_str(), (uint8_t*) studyCancelledResponseData.c_str(), studyCancelledResponseData.length());
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
 
     return 0;
 }

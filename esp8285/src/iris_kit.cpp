@@ -29,7 +29,7 @@
 #include <WiFiUdp.h>
 
 #include "defines.h"
-#include "ir_emit.h"
+#include "ir_drv_ctrl.h"
 #include "iot_hub.h"
 #include "http_client.h"
 #include "global.h"
@@ -53,6 +53,7 @@ extern String g_device_token;
 extern String g_mqtt_client_id;
 extern String g_mqtt_password;
 extern int g_app_id;
+extern int g_ready_to_study;
 
 // public variable definitions
 const unsigned long utcOffsetInMilliSeconds = 3600 * 1000;
@@ -223,11 +224,13 @@ void setup() {
     connectToIrextIoT();
 
     iotCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIrisIoT);
-    disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIR);
+    disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIRIn);
 }
 
 void loop() {
-    recvIR();
+    if (g_ready_to_study) {
+        recvIR();
+    }
     irextIoTKeepAlive();
     yield();
 }

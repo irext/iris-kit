@@ -33,6 +33,7 @@ typedef enum {
     RECIPIENT_STATUS_READY_TO_STUDY = 1,
     RECIPIENT_STATUS_STUDIED = 2,
     RECIPIENT_STATUS_UPLOADED = 3,
+    RECIPIENT_STATUS_CANCEL_STUDY = 4,
     RECIPIENT_STATUS_TEST = 10,
     RECIPIENT_STATUS_MAX = 63,
 } kit_status_t;
@@ -53,6 +54,8 @@ typedef enum {
 #define EVENT_NOTIFY_RESP            "__notify_response"
 
 #define NOTIFY_RESP_TEST             "test_ok"
+#define NOTIFY_RECV_PREPARED         "recv_prepared"
+#define NOTIFY_STUDY_CANCELLED       "study_cancelled"
 
 typedef int (*eventHandler)(String, String, String);
 typedef struct {

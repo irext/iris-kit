@@ -27,7 +27,7 @@
 #include "defines.h"
 #include "global.h"
 #include "serials.h"
-#include "ir_emit.h"
+#include "ir_drv_ctrl.h"
 
 #include "user_settings.h"
 

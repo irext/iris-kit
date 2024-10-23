@@ -32,17 +32,21 @@
 #include "http_client.h"
 #include "utils.h"
 
-#include "ir_emit.h"
+#include "ir_drv_ctrl.h"
 
 #define IR_SERIES_MAX    (1024)
 #define IR_END_CODE      (10000)
 
 const uint8_t k_timeout = 50;
-// As this program is a special purpose capture/decoder, let us use a larger
-// than normal buffer so we can handle Air Conditioner remote codes.
+// as this program is a special purpose capture/decoder, let us use a larger
+// than normal buffer so we can handle Air Conditioner remote codes
 const uint16_t k_capture_buffer_size = IR_SERIES_MAX;
 static IRsend * ir_send = nullptr;
 static IRrecv * ir_recv = nullptr;
+
+int g_ready_to_study = 0;
+int g_study_key_id = -1;
+String g_study_key_name = "";
 
 bool sendIR(String file_name) {
     String save_path = SAVE_PATH + file_name;
@@ -61,7 +65,6 @@ bool sendIR(String file_name) {
         cache.readBytes((char *)data_buffer, cache.size());
         ir_recv->disableIRIn();
         ir_send->sendRaw(data_buffer, length, 38);
-        ir_recv->enableIRIn();
         free(data_buffer);
         cache.close();
         return true;
@@ -84,7 +87,6 @@ bool emitIR(String timing) {
         ir_recv->disableIRIn();
         INFOF("IR send raw : %d\n", parts_num);
         ir_send->sendRaw(series, parts_num + 1, 38);
-        ir_recv->enableIRIn();
     }
     return true;
 }
@@ -114,7 +116,6 @@ bool sendCommand(String file_name, int key) {
                 }
                 ir_recv->disableIRIn();
                 ir_send->sendRaw(user_data, data_length, 38);
-                ir_recv->enableIRIn();
                 ir_close();
                 free(user_data);
                 free(content);
@@ -151,7 +152,6 @@ void sendStatus(String file, t_remote_ac_status status) {
                 DEBUGF("data_length = %d\n", data_length);
                 ir_recv->disableIRIn();
                 ir_send->sendRaw(user_data, data_length, 38);
-                ir_recv->enableIRIn();
                 ir_close();
                 free(user_data);
                 free(content);
@@ -161,6 +161,29 @@ void sendStatus(String file, t_remote_ac_status status) {
         }
         cache.close();
     }
+}
+
+void prepareRecvIR(int key_id, String key_name) {
+    enableIRIn();
+    g_study_key_id = key_id;
+    g_study_key_name = key_name;
+    g_ready_to_study = 1;
+}
+
+void cancelRecvIR() {
+    // called solicited
+    g_ready_to_study = 0;
+    g_study_key_name = "";
+    g_study_key_id = -1;
+    disableIRIn();
+}
+
+void completedRecvIR(int key_id, String key_name) {
+    // called unsolicited
+    g_ready_to_study = 0;
+    g_study_key_name = "";
+    g_study_key_id = -1;
+    disableIRIn();
 }
 
 void recvIR() {
@@ -223,13 +246,13 @@ void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
     DEBUGF("Load IR send pin at %d\n", send_pin);
     ir_send->begin();
     ir_recv = new IRrecv(recv_pin, k_capture_buffer_size, k_timeout, true);
-    enableIR();
+    disableIRIn();
 }
 
-void disableIR() {
+void disableIRIn() {
     ir_recv->disableIRIn();
 }
 
-void enableIR() {
+void enableIRIn() {
     ir_recv->enableIRIn();
 }
