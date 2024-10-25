@@ -44,24 +44,22 @@ const uint16_t k_capture_buffer_size = IR_SERIES_MAX;
 static IRsend * ir_send = nullptr;
 static IRrecv * ir_recv = nullptr;
 
-int g_ready_to_study = 0;
 int g_study_key_id = -1;
 String g_study_key_name = "";
+String g_study_remote_index = "";
 
 bool sendIR(String file_name) {
     String save_path = SAVE_PATH + file_name;
     if (LittleFS.exists(save_path)) {
         File cache = LittleFS.open(save_path, "r");
         if (!cache) {
-            ERRORF("Failed to open %s", save_path.c_str());
+            ERRORF("Failed to open %s\n", save_path.c_str());
             return false;
         }
         Serial.println();
         uint16_t *data_buffer = (uint16_t *)malloc(sizeof(uint16_t) * IR_SERIES_MAX);
         uint16_t length = cache.size() / 2;
         memset(data_buffer, 0x0, IR_SERIES_MAX);
-        INFOF("file size = %d\n", cache.size());
-        INFOLN();
         cache.readBytes((char *)data_buffer, cache.size());
         ir_recv->disableIRIn();
         ir_send->sendRaw(data_buffer, length, 38);
@@ -98,7 +96,7 @@ bool sendCommand(String file_name, int key) {
         File cache = LittleFS.open(save_path, "r");
         if (cache) {
             UINT16 content_size = cache.size();
-            DEBUGF("content size = %d\n", content_size);
+            INFOF("Send command, content size = %d\n", content_size);
 
             if (content_size != 0) {
                 UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
@@ -108,7 +106,7 @@ bool sendCommand(String file_name, int key) {
                 UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
                 UINT16 data_length = ir_decode(0, user_data, NULL, FALSE);
 
-                DEBUGF("data_length = %d\n", data_length);
+                INFOF("Send command, data_length = %d\n", data_length);
                 if (LOG_DEBUG) {
                     for (int i = 0; i < data_length; i++)
                         Serial.printf("%d ", *(user_data + i));
@@ -139,7 +137,7 @@ void sendStatus(String file, t_remote_ac_status status) {
         File cache = LittleFS.open(save_path, "r");
         if (cache) {
             UINT16 content_size = cache.size();
-            DEBUGF("content size = %d\n", content_size);
+            INFOF("Send status, content size = %d\n", content_size);
 
             if (content_size != 0) {
                 UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
@@ -149,7 +147,7 @@ void sendStatus(String file, t_remote_ac_status status) {
                 UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
                 UINT16 data_length = ir_decode(0, user_data, &status, FALSE);
 
-                DEBUGF("data_length = %d\n", data_length);
+                INFOF("Send status, data_length = %d\n", data_length);
                 ir_recv->disableIRIn();
                 ir_send->sendRaw(user_data, data_length, 38);
                 ir_close();
@@ -163,16 +161,16 @@ void sendStatus(String file, t_remote_ac_status status) {
     }
 }
 
-void prepareRecvIR(int key_id, String key_name) {
-    enableIRIn();
+void prepareRecvIR(int key_id, String key_name, String remote_index) {
     g_study_key_id = key_id;
     g_study_key_name = key_name;
-    g_ready_to_study = 1;
+    g_study_remote_index = remote_index;
+    removeReceived();
+    enableIRIn();
 }
 
 void cancelRecvIR() {
-    // called solicited
-    g_ready_to_study = 0;
+    g_study_remote_index = "";
     g_study_key_name = "";
     g_study_key_id = -1;
     disableIRIn();
@@ -180,7 +178,7 @@ void cancelRecvIR() {
 
 void completedRecvIR(int key_id, String key_name) {
     // called unsolicited
-    g_ready_to_study = 0;
+    g_study_remote_index = "";
     g_study_key_name = "";
     g_study_key_id = -1;
     disableIRIn();
@@ -189,41 +187,52 @@ void completedRecvIR(int key_id, String key_name) {
 void recvIR() {
     decode_results results;
     if (ir_recv->decode(&results)) {
-        DEBUGF("raw length = %d\n", results.rawlen - 1);
+        INFOF("Recv IR, raw length = %d\n", results.rawlen - 1);
         String raw_data;
         for (int i = 1; i < results.rawlen; i++) {
             raw_data += String(*(results.rawbuf + i) * kRawTick) + ",";
         }
         ir_recv->resume();
-        send_msg_doc.clear();
-        send_msg_doc["cmd"] = "record_rt";
-        send_msg_doc["params"]["signal"] = "IR";
-        send_msg_doc["params"]["length"] = results.rawlen;
-        send_msg_doc["params"]["value"] = raw_data.c_str();
-        DEBUGLN(raw_data.c_str());
-        saveIR(results);
+        INFOLN(raw_data.c_str());
+        saveReceived(results);
     }
 }
 
-bool saveIR(String file_name) {
+bool saveReceived(decode_results& results) {
     String save_path = SAVE_PATH;
-    save_path += file_name;
-    return LittleFS.rename("/bin/test", save_path);
-}
+    String file_name = "";
 
-bool saveIR(decode_results& results) {
-    String save_path = SAVE_PATH;
-    save_path += "test";
-    DEBUGF("save raw data as %s\n", save_path.c_str());
+    if (g_study_remote_index.isEmpty()) {
+        return false;
+    }
+
+    file_name = "ir_" + g_study_remote_index + RECEIVED_SUFFIX;
+    save_path += file_name;
+    INFOF("Save received code to: %s\n", save_path.c_str());
     File cache = LittleFS.open(save_path, "w");
     if (!cache) {
-        ERRORLN("Failed to create file");
+        ERRORF("Failed to create file\n");
         return false;
     }
     for (size_t i = 0; i < results.rawlen; i++)
         *(results.rawbuf + i) = *(results.rawbuf + i) * kRawTick;
     cache.write((char *)(results.rawbuf + 1), (results.rawlen - 1) * 2);
     cache.close();
+    return true;
+}
+
+bool removeReceived() {
+    String save_path = SAVE_PATH;
+    String file_name = "";
+
+    if (g_study_remote_index.isEmpty()) {
+        return false;
+    }
+    file_name = "ir_" + g_study_remote_index + RECEIVED_SUFFIX;
+    save_path += file_name;
+    INFOF("Delete received code file: %s\n", save_path.c_str());
+    LittleFS.remove(save_path);
+
     return true;
 }
 
@@ -243,7 +252,7 @@ void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
         delete ir_recv;
     }
     ir_send = new IRsend(send_pin);
-    DEBUGF("Load IR send pin at %d\n", send_pin);
+    INFOF("Load IR send pin at %d\n", send_pin);
     ir_send->begin();
     ir_recv = new IRrecv(recv_pin, k_capture_buffer_size, k_timeout, true);
     disableIRIn();

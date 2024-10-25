@@ -42,13 +42,11 @@ bool sendIR(String file_name);
 
 bool emitIR(String timing);
 
-bool saveIR(decode_results &results);
-
 bool sendCommand(String file_name, int key);
 
 void sendStatus(String file_name, t_remote_ac_status status);
 
-void prepareRecvIR(int key_id, String key_name);
+void prepareRecvIR(int key_id, String key_name, String remote_index);
 
 void cancelRecvIR();
 
@@ -56,7 +54,9 @@ void completedRecvIR(int key_id, String key_name);
 
 void recvIR();
 
-bool saveIR(String file_name);
+bool saveReceived(decode_results& results);
+
+bool removeReceived();
 
 void initAC(String);
 

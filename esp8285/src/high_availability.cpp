@@ -99,6 +99,6 @@ void registAC(String filename, bool flag) {
     if (flag) {
         serializeJson(send_msg_doc, reg_content);
     }
-    DEBUGLN(reg_topic_head);
+    INFOLN(reg_topic_head);
     // mqttPublishRetained(reg_topic_head, reg_content);
 }

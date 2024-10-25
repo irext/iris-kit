@@ -47,8 +47,9 @@ typedef unsigned char uint8_t;
 #endif
 
 /* ----------------- auth settings ----------------- */
-#define CREDENTIAL_INIT_RETRY_MAX     (3)
+#define CREDENTIAL_INIT_RETRY_MAX     (10)
 #define SYSTEM_DELAY                  (2000)
+#define AUTH_RETRY_DELAY              (6000)
 
 /* ----------------- iot settings -----------------*/
 #define MQTT_HOST_REL                 "iot.irext.net"

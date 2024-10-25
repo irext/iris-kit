@@ -29,14 +29,17 @@
 #define PASSWORD_MAX                 (64)
 
 typedef enum {
-    RECIPIENT_STATUS_IDLE = 0,
-    RECIPIENT_STATUS_READY_TO_STUDY = 1,
-    RECIPIENT_STATUS_STUDIED = 2,
-    RECIPIENT_STATUS_UPLOADED = 3,
-    RECIPIENT_STATUS_CANCEL_STUDY = 4,
-    RECIPIENT_STATUS_TEST = 10,
-    RECIPIENT_STATUS_MAX = 63,
-} kit_status_t;
+    IRIS_KIT_STATUS_IDLE = 0,
+    IRIS_KIT_STATUS_READY_TO_STUDY = 1,
+    IRIS_KIT_STATUS_STUDIED = 2,
+    IRIS_KIT_STATUS_UPLOADED = 3,
+    IRIS_KIT_STATUS_CANCEL_STUDY = 4,
+    IRIS_KIT_STATUS_EMITTING = 5,
+    IRIS_KIT_STATUS_TEST = 10,
+
+    IRIS_KIT_STATUS_NOT_CONNECTED = 62,
+    IRIS_KIT_STATUS_MAX = 63,
+} iris_kit_status_t;
 
 // web http call URL list
 #define GET_IRIS_KIT_ACCOUNT_SUFFIX  "/irext-collect/credentials/auth_iris_kit"
@@ -44,8 +47,9 @@ typedef enum {
 #define DOWNLOAD_BIN_SUFFIX          "/irext-collect/download"
 #define DOWNLOAD_PREFIX              "http://irext-debug.oss-cn-hangzhou.aliyuncs.com/irda_"
 #define DOWNLOAD_SUFFIX              ".bin"
+#define RECEIVED_SUFFIX              ".rcv"
 
-// IRext bin code storage
+// IR bin code storage
 #define SAVE_PATH                    "/ir/"
 
 // IRIS communication

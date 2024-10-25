@@ -40,16 +40,16 @@ typedef enum {
     MQTT_TYPE_MAX = 7,
 } mqtt_type_t;
 
-int connectToIrextIoT();
+int connectIot();
 
-void irextIoTKeepAlive();
+void keepAliveIot();
 
-void checkIrisIoT();
+void checkIot();
 
 void* getSession();
 
 void sendData(const char* topic, const uint8_t *data, int length);
 
-void irisIoTCallback(char *topic, uint8_t *data, uint32_t length);
+void iotCallback(char *topic, uint8_t *data, uint32_t length);
 
 #endif // IRIS_KIT_IOT_H

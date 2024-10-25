@@ -49,7 +49,6 @@ static bool force_disconnected = false;
 static PubSubClient* emqx_client = NULL;
 
 // private function declarations
-static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
 
 
 // public function definitions
@@ -75,15 +74,16 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
         }
     }
     if (emqx_client->connected()) {
-        INFOF("IRext IoT connect done\n");
+        INFOF("IoT connect done\n");
         return 0;
     } else {
-        ERRORF("IRext IoT failed to connect\n");
+        ERRORF("IoT failed to connect\n");
         return -1;
     }
 }
 
-void emqxClientKeepAlive() {
+void emqxClientKeepAlive(PubSubClient& mqtt_client) {
+    (void) mqtt_client;
     emqx_client->loop();
 }
 

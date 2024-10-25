@@ -66,7 +66,7 @@ static bool downstream_topic_subscribed = false;
 
 
 // private function declarations
-static void irisIrextIoTCallback(char *topic, uint8_t *data, uint32_t length);
+static void irisIoTCallback(char *topic, uint8_t *data, uint32_t length);
 
 static int iot_retry = 0;
 
@@ -74,7 +74,7 @@ static PubSubClient g_mqtt_client(wifi_client);
 
 
 // public function definitions
-int connectToIrextIoT() {
+int connectIot() {
     downstream_topic_subscribed = false;
     int conn_ret = -1;
 
@@ -85,7 +85,7 @@ int connectToIrextIoT() {
         g_upstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_UPSTREAM_REL;
         g_downstream_topic = "/" + g_product_key + "/" + g_device_name + TOPIC_DOWNSTREAM_REL;
     } else {
-        ERRORF("IRIS Kit release key is not supported yet\n");
+        ERRORF("Release key is not supported yet\n");
         factoryReset();
         return -1;
     }
@@ -98,7 +98,7 @@ int connectToIrextIoT() {
     conn_ret = connectToAliot(g_mqtt_client);
 
     if (0 != conn_ret) {
-        INFOF("Try connecting to IRext IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
+        INFOF("Try connecting to IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
             g_mqtt_server.c_str(), g_mqtt_port,
             g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
         conn_ret = connectToEMQXBroker(g_mqtt_client);
@@ -111,13 +111,13 @@ int connectToIrextIoT() {
     }
 
     if (0 != conn_ret) {
-        ERRORLN("Something may went wrong with your credential, please retry connect to Wifi...");
+        ERRORF("Something may went wrong with your credential, please retry connect to Wifi...\n");
         factoryReset();
         return -1;
     }
 
     if (!g_subscribed) {
-        g_mqtt_client.setCallback(irisIoTCallback);
+        g_mqtt_client.setCallback(iotCallback);
         g_mqtt_client.subscribe(g_downstream_topic.c_str());
         g_subscribed = true;
     }
@@ -128,20 +128,20 @@ int connectToIrextIoT() {
     return conn_ret;
 }
 
-void irextIoTKeepAlive() {
-    if (MQTT_TYPE_ALIOT == g_mqtt_type) {
-        aliotKeepAlive(g_mqtt_client);
-    } else if (MQTT_TYPE_EMQX == g_mqtt_type) {
-        emqxClientKeepAlive();
+void keepAliveIot() {
+    if (g_mqtt_client.connected()) {
+        if (MQTT_TYPE_ALIOT == g_mqtt_type) {
+            aliotKeepAlive(g_mqtt_client);
+        } else if (MQTT_TYPE_EMQX == g_mqtt_type) {
+            emqxClientKeepAlive(g_mqtt_client);
+        }
     }
-
     unsigned long current_time = millis();
-
     if (current_time - last_check_time > 10000) {
         if (!g_mqtt_client.connected()) {
             g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
             g_subscribed = false;
-            connectToIrextIoT();
+            connectIot();
         }
     }
 }
@@ -155,15 +155,15 @@ void* getSession() {
     return &g_mqtt_client;
 }
 
-void checkIrisIoT() {
+void checkIot() {
     if (g_mqtt_client.connected()) {
-        INFOLN("send iris kit heart beat");
+        INFOF("Send iris kit heart beat\n");
         sendIrisKitHeartBeat();
     }
 }
 
-void irisIoTCallback(char *topic, uint8_t *data, uint32_t length) {
-    INFOF("downstream message received, topic = %s, length = %d\n", topic, length);
+void iotCallback(char *topic, uint8_t *data, uint32_t length) {
+    INFOF("Downstream message received, topic = %s, length = %d\n", topic, length);
     if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
         handleIrisKitMessage((const char*) data, length);
     }
