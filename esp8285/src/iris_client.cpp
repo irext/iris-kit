@@ -289,8 +289,8 @@ static String buildGeneralResponse(int console_id, String notify_payload) {
     iris_msg_doc["deviceName"] = g_device_name;
     iris_msg_doc["appId"] = g_app_id;
     iris_msg_doc["consoleId"] = console_id;
-    iris_msg_doc["resp"] = String(NOTIFY_RESP_TEST);
-    serializeJson(iris_msg_doc, notify_payload);
+    iris_msg_doc["resp"] = String(notify_payload);
+    serializeJson(iris_msg_doc, notification);
 
     return notification;
 }
