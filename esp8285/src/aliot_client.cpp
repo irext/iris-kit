@@ -58,7 +58,7 @@ int connectToAliot(PubSubClient& mqtt_client) {
     String aliot_client_id = g_product_key + "." + g_device_name;
 
     int res = iot.begin(mqtt_client, g_product_key.c_str(), g_device_name.c_str(), g_device_token.c_str(), g_aliot_region.c_str());
-    if (0 == res) {
+    if (0 == res && mqtt_client.connected()) {
         INFOF("Aliyun IoT connected\n");
     } else {
         ERRORF("Failed to connect to Aliyun IoT\n");

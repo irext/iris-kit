@@ -142,6 +142,7 @@ void keepAliveIot() {
             g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
             g_subscribed = false;
             connectIot();
+            last_check_time = current_time;
         }
     }
 }

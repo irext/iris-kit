@@ -211,9 +211,10 @@ int AliyunIoTSDK::begin(PubSubClient &mqtt_client,
 int AliyunIoTSDK::loop() {
     int mqttStatus = 0;
     client->loop();
-    if (millis() - lastMs >= CHECK_INTERVAL) {
-        lastMs = millis();
+    unsigned long thisMs = millis();
+    if (thisMs - lastMs >= CHECK_INTERVAL) {
         mqttStatus = mqttCheckConnect();
+        lastMs = thisMs;
     }
 
     if (0 == mqttStatus) {
