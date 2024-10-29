@@ -39,6 +39,14 @@ typedef enum {
 
     IRIS_KIT_STATUS_NOT_CONNECTED = 62,
     IRIS_KIT_STATUS_MAX = 63,
+} status_t;
+
+typedef struct {
+    int console_id;
+    String remote_index;
+    int key_id;
+    String key_name;
+    status_t status;
 } iris_kit_status_t;
 
 // web http call URL list
@@ -59,7 +67,8 @@ typedef enum {
 
 #define NOTIFY_RESP_TEST             "test_ok"
 #define NOTIFY_RECV_PREPARED         "recv_prepared"
-#define NOTIFY_STUDY_CANCELLED       "study_cancelled"
+#define NOTIFY_RECV_CANCELLED        "recv_cancelled"
+#define NOTIFY_RECV_COMPLETED        "recv_completed"
 
 typedef int (*eventHandler)(String, String, String);
 typedef struct {
@@ -84,5 +93,19 @@ void sendIrisKitConnect();
 void sendIrisKitHeartBeat();
 
 void handleIrisKitMessage(const char* data, int length);
+
+int processStatusChange(int status,
+                        int console_id,
+                        int key_id,
+                        String key_name,
+                        String remote_index);
+
+void updateIrisKitStatus(status_t status,
+                        int console_id,
+                        String remote_index,
+                        int key_id, String
+                        key_name);
+
+void resetIrisKitStatus();
 
 #endif // IRIS_KIT_IR_BABY_H

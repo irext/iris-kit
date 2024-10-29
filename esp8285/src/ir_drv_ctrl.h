@@ -46,17 +46,19 @@ bool sendCommand(String file_name, int key);
 
 void sendStatus(String file_name, t_remote_ac_status status);
 
-void prepareRecvIR(int key_id, String key_name, String remote_index);
+void prepareRecvIR();
 
 void cancelRecvIR();
 
-void completedRecvIR(int key_id, String key_name);
+int completeRecvIR(String &ir_data);
 
 void recvIR();
 
-bool saveReceived(decode_results& results);
+bool saveReceived(decode_results &results);
 
 bool removeReceived();
+
+int loadReceived(String &ir_data);
 
 void initAC(String);
 

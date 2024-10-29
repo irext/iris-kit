@@ -61,7 +61,13 @@ int credential_init_retry = 0;
 int g_runtime_env = RUNTIME_RELEASE;
 iris_kit_settings_t iriskit_settings;
 bool iris_kit_settings_loaded = false;
-iris_kit_status_t g_iris_kit_status = IRIS_KIT_STATUS_NOT_CONNECTED;
+iris_kit_status_t g_iris_kit_status = {
+    console_id: 0,
+    remote_index: "",
+    key_id: 0,
+    key_name: "",
+    status: IRIS_KIT_STATUS_IDLE
+};
 
 
 // private variable definitions
@@ -189,7 +195,7 @@ void setup() {
     iriskit_settings.password = String(iris_password);
     setIrisKitSettings(iriskit_settings);
 
-    g_iris_kit_status = IRIS_KIT_STATUS_IDLE;
+    resetIrisKitStatus();
 
     saveSettings();
 
@@ -232,8 +238,11 @@ void setup() {
 }
 
 void loop() {
-    if (IRIS_KIT_STATUS_READY_TO_STUDY == g_iris_kit_status) {
+    // process unsolicited FSM state change
+    if (IRIS_KIT_STATUS_READY_TO_STUDY == g_iris_kit_status.status) {
         recvIR();
+    } else if (IRIS_KIT_STATUS_UPLOADED == g_iris_kit_status.status) {
+        resetIrisKitStatus();
     }
     keepAliveIot();
     yield();

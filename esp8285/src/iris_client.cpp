@@ -62,11 +62,17 @@ char iris_password[PASSWORD_MAX] = { 0 };
 static int processEvent(String event_name, String product_key, String device_name, String content);
 static String buildConnect();
 static String buildHeartBeat();
+static void buildGeneralResponse(String notify_name);
+static void buildGeneralIndication(String notify_name);
+static String buildTestResponse();
+static String buildRecvPreparedResponse();
+static String buildRecvCompletedIndication(String ir_data);
+static String buildRecvErrorIndication();
+static String buildRecvCancelledResponse();
 static int handleConnected(String product_key, String device_name, String content);
 static int handleHartBeat(String product_key, String device_name, String content);
 static int handleEmit(String product_key, String device_name, String content);
 static int handleNotifyStatus(String product_key, String device_name, String content);
-static int processStatusChange(int status, int console_id, int key_id, String key_name, String remote_index);
 
 static int hb_count = 0;
 
@@ -243,6 +249,79 @@ void handleIrisKitMessage(const char* data, int length) {
     }
 }
 
+int processStatusChange(int status, int console_id, int key_id, String key_name, String remote_index) {
+    switch(status) {
+        case IRIS_KIT_STATUS_READY_TO_STUDY:
+        {
+            // enter into IR receive mode and send response
+            updateIrisKitStatus(IRIS_KIT_STATUS_READY_TO_STUDY, console_id, remote_index, key_id, key_name);
+            prepareRecvIR();
+            String recvPreparedResponseData = buildRecvPreparedResponse();
+            sendData(g_upstream_topic.c_str(), (uint8_t*) recvPreparedResponseData.c_str(), recvPreparedResponseData.length());
+            break;
+        }
+        case IRIS_KIT_STATUS_STUDIED:
+        {
+            // after IR data are received, load saved IR data and send to IRIS server
+            updateIrisKitStatus(IRIS_KIT_STATUS_STUDIED, console_id, remote_index, key_id, key_name);
+            String ir_data = "";
+            String recvCompletedIndicationData = "";
+            if (completeRecvIR(ir_data) > 0) {
+                recvCompletedIndicationData = buildRecvCompletedIndication(ir_data);
+            } else {
+                recvCompletedIndicationData = buildRecvErrorIndication();
+            }
+            sendData(g_upstream_topic.c_str(), (uint8_t*) recvCompletedIndicationData.c_str(), recvCompletedIndicationData.length());
+            updateIrisKitStatus(IRIS_KIT_STATUS_UPLOADED, console_id, remote_index, key_id, key_name);
+            break;
+        }
+        case IRIS_KIT_STATUS_CANCEL_STUDY:
+        {
+            // cancel IR receiving and reset
+            cancelRecvIR();
+            String studyCancelledResponseData = buildRecvCancelledResponse();
+            sendData(g_upstream_topic.c_str(), (uint8_t*) studyCancelledResponseData.c_str(), studyCancelledResponseData.length());
+            resetIrisKitStatus();
+            break;
+        }
+        case IRIS_KIT_STATUS_TEST:
+        {
+            // send response for test notification
+            updateIrisKitStatus(IRIS_KIT_STATUS_TEST, console_id, remote_index, key_id, key_name);
+            String testResponseData = buildTestResponse();
+            sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
+            resetIrisKitStatus();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
+    return 0;
+}
+
+void updateIrisKitStatus(status_t status,
+                        int console_id,
+                        String remote_index,
+                        int key_id, String
+                        key_name) {
+    g_iris_kit_status.status = status;
+    g_iris_kit_status.console_id = console_id;
+    g_iris_kit_status.remote_index = remote_index;
+    g_iris_kit_status.key_id = key_id;
+    g_iris_kit_status.key_name = key_name;
+}
+
+void resetIrisKitStatus() {
+    g_iris_kit_status.status = IRIS_KIT_STATUS_IDLE;
+    g_iris_kit_status.console_id = 0;
+    g_iris_kit_status.remote_index = "";
+    g_iris_kit_status.key_id = 0;
+    g_iris_kit_status.key_name = "";
+}
+
 
 // private function definitions
 static int processEvent(String event_name, String product_key, String device_name, String content) {
@@ -281,30 +360,69 @@ static String buildHeartBeat() {
     return heartBeatMessage;
 }
 
-static String buildGeneralResponse(int console_id, String notify_payload) {
-    String notification = "";
+static void buildGeneralResponse(String notify_name) {
     iris_msg_doc.clear();
     iris_msg_doc["eventName"] = String(EVENT_NOTIFY_RESP);
     iris_msg_doc["productKey"] = g_product_key;
     iris_msg_doc["deviceName"] = g_device_name;
     iris_msg_doc["appId"] = g_app_id;
-    iris_msg_doc["consoleId"] = console_id;
-    iris_msg_doc["resp"] = String(notify_payload);
-    serializeJson(iris_msg_doc, notification);
-
-    return notification;
+    iris_msg_doc["consoleId"] = g_iris_kit_status.console_id;
+    iris_msg_doc["resp"] = String(notify_name);
 }
 
-static String buildTestResponse(int console_id) {
-    return buildGeneralResponse(console_id, NOTIFY_RESP_TEST);
+static void buildGeneralIndication(String notify_name) {
+    iris_ind_doc.clear();
+    iris_ind_doc["eventName"] = String(EVENT_NOTIFY_RESP);
+    iris_ind_doc["productKey"] = g_product_key;
+    iris_ind_doc["deviceName"] = g_device_name;
+    iris_ind_doc["appId"] = g_app_id;
+    iris_ind_doc["consoleId"] = g_iris_kit_status.console_id;
+    iris_ind_doc["remoteIndex"] = g_iris_kit_status.remote_index;
+    iris_ind_doc["keyId"] = g_iris_kit_status.key_id;
+    iris_ind_doc["keyName"] = g_iris_kit_status.key_name;
+    iris_ind_doc["resp"] = String(notify_name);
 }
 
-static String buildRecvPreparedResponse(int console_id) {
-    return buildGeneralResponse(console_id, NOTIFY_RECV_PREPARED);
+static String buildTestResponse() {
+    String testReponse = "";
+    buildGeneralResponse(NOTIFY_RESP_TEST);
+    serializeJson(iris_msg_doc, testReponse);
+
+    return testReponse;
 }
 
-static String buildStudyCancelledResponse(int console_id) {
-    return buildGeneralResponse(console_id, NOTIFY_STUDY_CANCELLED);
+static String buildRecvPreparedResponse() {
+    String recvPreparedResponse = "";
+    buildGeneralResponse(NOTIFY_RECV_PREPARED);
+    serializeJson(iris_msg_doc, recvPreparedResponse);
+
+    return recvPreparedResponse;
+}
+
+static String buildRecvCompletedIndication(String ir_data) {
+    String recvCompletedIndication = "";
+    buildGeneralIndication(NOTIFY_RECV_COMPLETED);
+    iris_ind_doc["payload"] = ir_data;
+    serializeJson(iris_ind_doc, recvCompletedIndication);
+
+    return recvCompletedIndication;
+}
+
+static String buildRecvErrorIndication() {
+    String recvErrorIndication = "";
+    buildGeneralIndication(NOTIFY_RECV_COMPLETED);
+    iris_ind_doc["payload"] = "error";
+    serializeJson(iris_ind_doc, recvErrorIndication);
+
+    return recvErrorIndication;
+}
+
+static String buildRecvCancelledResponse() {
+    String recvCancelledResponse = "";
+    buildGeneralResponse(NOTIFY_RECV_CANCELLED);
+    serializeJson(iris_msg_doc, recvCancelledResponse);
+
+    return recvCancelledResponse;
 }
 
 static int handleConnected(String product_key, String device_name, String content) {
@@ -318,7 +436,7 @@ static int handleHartBeat(String product_key, String device_name, String content
 
 static int handleEmit(String product_key, String device_name, String content) {
     INFOF("Received emit code : %s, %s, %s\n", product_key.c_str(), device_name.c_str(), content.c_str());
-    g_iris_kit_status = IRIS_KIT_STATUS_EMITTING;
+    updateIrisKitStatus(IRIS_KIT_STATUS_EMITTING, 0, "", 0, "");
     emit_code_doc.clear();
     if (DeserializationError::Ok == deserializeJson(emit_code_doc, content)) {
         int remote_id = emit_code_doc["remoteId"];
@@ -329,7 +447,7 @@ static int handleEmit(String product_key, String device_name, String content) {
     } else {
         INFOF("Deserialize failed\n");
     }
-    g_iris_kit_status = IRIS_KIT_STATUS_IDLE;
+    resetIrisKitStatus();
     return 0;
 }
 
@@ -348,39 +466,5 @@ static int handleNotifyStatus(String product_key, String device_name, String con
     } else {
         INFOF("Deserialize failed\n");
     }
-    return 0;
-}
-
-static int processStatusChange(int status, int console_id, int key_id, String key_name, String remote_index) {
-    switch(status) {
-        case IRIS_KIT_STATUS_TEST:
-        {
-            // send response for test notification
-            String testResponseData = buildTestResponse(console_id);
-            sendData(g_upstream_topic.c_str(), (uint8_t*) testResponseData.c_str(), testResponseData.length());
-            break;
-        }
-        case IRIS_KIT_STATUS_READY_TO_STUDY:
-        {
-            // enter into IR receive mode and send response
-            prepareRecvIR(key_id, key_name, remote_index);
-            String recvPreparedResponseData = buildRecvPreparedResponse(console_id);
-            sendData(g_upstream_topic.c_str(), (uint8_t*) recvPreparedResponseData.c_str(), recvPreparedResponseData.length());
-            break;
-        }
-        case IRIS_KIT_STATUS_CANCEL_STUDY:
-        {
-            // cancel IR receiving and reset
-            cancelRecvIR();
-            String studyCancelledResponseData = buildStudyCancelledResponse(console_id);
-            sendData(g_upstream_topic.c_str(), (uint8_t*) studyCancelledResponseData.c_str(), studyCancelledResponseData.length());
-            break;
-        }
-        default:
-        {
-            break;
-        }
-    }
-
     return 0;
 }

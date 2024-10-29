@@ -37,17 +37,24 @@
 #define IR_SERIES_MAX    (1024)
 #define IR_END_CODE      (10000)
 
-const uint8_t k_timeout = 50;
-// as this program is a special purpose capture/decoder, let us use a larger
-// than normal buffer so we can handle Air Conditioner remote codes
-const uint16_t k_capture_buffer_size = IR_SERIES_MAX;
+
+// external variable declaratoins
+extern iris_kit_status_t g_iris_kit_status;
+
+
+// public variable definitions
+
+
+// private variable definitions
 static IRsend * ir_send = nullptr;
 static IRrecv * ir_recv = nullptr;
+static const uint8_t k_timeout = 50;
+// as this program is a special purpose capture/decoder, let us use a larger
+// than normal buffer so we can handle Air Conditioner remote codes
+static const uint16_t k_capture_buffer_size = IR_SERIES_MAX;
 
-int g_study_key_id = -1;
-String g_study_key_name = "";
-String g_study_remote_index = "";
 
+// public function definitions
 bool sendIR(String file_name) {
     String save_path = SAVE_PATH + file_name;
     if (LittleFS.exists(save_path)) {
@@ -161,27 +168,19 @@ void sendStatus(String file, t_remote_ac_status status) {
     }
 }
 
-void prepareRecvIR(int key_id, String key_name, String remote_index) {
-    g_study_key_id = key_id;
-    g_study_key_name = key_name;
-    g_study_remote_index = remote_index;
+void prepareRecvIR() {
     removeReceived();
     enableIRIn();
 }
 
 void cancelRecvIR() {
-    g_study_remote_index = "";
-    g_study_key_name = "";
-    g_study_key_id = -1;
     disableIRIn();
 }
 
-void completedRecvIR(int key_id, String key_name) {
+int completeRecvIR(String &ir_data) {
     // called unsolicited
-    g_study_remote_index = "";
-    g_study_key_name = "";
-    g_study_key_id = -1;
     disableIRIn();
+    return loadReceived(ir_data);
 }
 
 void recvIR() {
@@ -195,6 +194,11 @@ void recvIR() {
         ir_recv->resume();
         INFOLN(raw_data.c_str());
         saveReceived(results);
+        processStatusChange(IRIS_KIT_STATUS_STUDIED,
+                            g_iris_kit_status.console_id,
+                            g_iris_kit_status.key_id,
+                            g_iris_kit_status.key_name,
+                            g_iris_kit_status.remote_index);
     }
 }
 
@@ -202,11 +206,11 @@ bool saveReceived(decode_results& results) {
     String save_path = SAVE_PATH;
     String file_name = "";
 
-    if (g_study_remote_index.isEmpty()) {
+    if (g_iris_kit_status.remote_index.isEmpty()) {
         return false;
     }
 
-    file_name = "ir_" + g_study_remote_index + RECEIVED_SUFFIX;
+    file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Save received code to: %s\n", save_path.c_str());
     File cache = LittleFS.open(save_path, "w");
@@ -225,15 +229,38 @@ bool removeReceived() {
     String save_path = SAVE_PATH;
     String file_name = "";
 
-    if (g_study_remote_index.isEmpty()) {
+    if (g_iris_kit_status.remote_index.isEmpty()) {
         return false;
     }
-    file_name = "ir_" + g_study_remote_index + RECEIVED_SUFFIX;
+    file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Delete received code file: %s\n", save_path.c_str());
     LittleFS.remove(save_path);
 
     return true;
+}
+
+int loadReceived(String &ir_data) {
+    String save_path = SAVE_PATH;
+    String file_name = "";
+
+    if (g_iris_kit_status.remote_index.isEmpty()) {
+        return -1;
+    }
+
+    file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
+    save_path += file_name;
+    INFOF("Load received code from: %s\n", save_path.c_str());
+
+    File cache = LittleFS.open(save_path, "r");
+    if (!cache) {
+        ERRORF("Failed to open file\n");
+        return false;
+    }
+    ir_data = cache.readString();
+    cache.close();
+
+    return ir_data.length();
 }
 
 void initAC(String file) {
