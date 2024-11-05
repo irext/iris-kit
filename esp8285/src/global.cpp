@@ -25,14 +25,32 @@
 
 #include "global.h"
 
-StaticJsonDocument<1024> iris_msg_doc;
-StaticJsonDocument<1024> iris_ind_doc;
+StaticJsonDocument<512> http_request_doc;
+StaticJsonDocument<512> http_response_doc;
+
+// out solicited request message
+StaticJsonDocument<512> mqtt_upstream_topic_msg_doc;
+
+// out solicited response message
+StaticJsonDocument<512> mqtt_upstream_topic_rsp_doc;
+
+// out unsolicited message
+StaticJsonDocument<512> mqtt_upstream_topic_ind_doc;
+
+// out heartbeat message
+StaticJsonDocument<512> mqtt_upstream_topic_hbt_doc;
+
+// in message
+StaticJsonDocument<512> mqtt_downstream_topic_msg_doc;
+
+// inner json data
+StaticJsonDocument<512> status_notify_doc;
+StaticJsonDocument<2048> emit_code_doc;
+
+// IR json data
 StaticJsonDocument<1024> recv_msg_doc;
 StaticJsonDocument<1024> send_msg_doc;
-StaticJsonDocument<1024> http_request_doc;
-StaticJsonDocument<1024> http_response_doc;
-StaticJsonDocument<2048> emit_code_doc;
-StaticJsonDocument<1024> status_notify_doc;
+
 
 WiFiManager wifi_manager;
 WiFiClient wifi_client;

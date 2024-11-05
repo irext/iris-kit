@@ -29,6 +29,17 @@
 #include <WiFiClient.h>
 
 /* goable json variable */
+extern StaticJsonDocument<512> http_request_doc;
+extern StaticJsonDocument<512> http_response_doc;
+extern StaticJsonDocument<512> mqtt_upstream_topic_msg_doc;
+extern StaticJsonDocument<512> mqtt_upstream_topic_rsp_doc;
+extern StaticJsonDocument<512> mqtt_upstream_topic_ind_doc;
+extern StaticJsonDocument<512> mqtt_upstream_topic_hbt_doc;
+extern StaticJsonDocument<512> mqtt_downstream_topic_msg_doc;
+extern StaticJsonDocument<512> status_notify_doc;
+
+extern StaticJsonDocument<2048> emit_code_doc;
+
 extern StaticJsonDocument<1024> recv_msg_doc;
 extern StaticJsonDocument<1024> send_msg_doc;
 

@@ -64,11 +64,13 @@ typedef struct {
 #define EVENT_NAME_CONNECT           "__connect"
 #define EVENT_HEART_BEAT_REQ         "__hb_request"
 #define EVENT_NOTIFY_RESP            "__notify_response"
+#define EVENT_INDICATION             "__indication"
 
 #define NOTIFY_RESP_TEST             "test_ok"
-#define NOTIFY_RECV_PREPARED         "recv_prepared"
-#define NOTIFY_RECV_CANCELLED        "recv_cancelled"
-#define NOTIFY_RECV_COMPLETED        "recv_completed"
+#define NOTIFY_STUDY_PREPARED        "study_prepared"
+#define NOTIFY_STUDY_CANCELLED       "study_cancelled"
+#define NOTIFY_STUDY_COMPLETED       "study_completed"
+#define NOTIFY_STUDY_ERROR           "study_error"
 
 typedef int (*eventHandler)(String, String, String);
 typedef struct {
@@ -96,9 +98,9 @@ void handleIrisKitMessage(const char* data, int length);
 
 int processStatusChange(int status,
                         int console_id,
+                        String remote_index,
                         int key_id,
-                        String key_name,
-                        String remote_index);
+                        String key_name);
 
 void updateIrisKitStatus(status_t status,
                         int console_id,

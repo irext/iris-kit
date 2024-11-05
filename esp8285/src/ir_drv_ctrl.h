@@ -46,11 +46,11 @@ bool sendCommand(String file_name, int key);
 
 void sendStatus(String file_name, t_remote_ac_status status);
 
-void prepareRecvIR();
+void prepareStudyIR();
 
-void cancelRecvIR();
+void cancelStudyIR();
 
-int completeRecvIR(String &ir_data);
+int completeStudyIR(String &ir_data);
 
 void recvIR();
 

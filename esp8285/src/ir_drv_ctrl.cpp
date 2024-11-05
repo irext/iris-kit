@@ -168,16 +168,16 @@ void sendStatus(String file, t_remote_ac_status status) {
     }
 }
 
-void prepareRecvIR() {
+void prepareStudyIR() {
     removeReceived();
     enableIRIn();
 }
 
-void cancelRecvIR() {
+void cancelStudyIR() {
     disableIRIn();
 }
 
-int completeRecvIR(String &ir_data) {
+int completeStudyIR(String &ir_data) {
     // called unsolicited
     disableIRIn();
     return loadReceived(ir_data);
@@ -196,9 +196,9 @@ void recvIR() {
         saveReceived(results);
         processStatusChange(IRIS_KIT_STATUS_STUDIED,
                             g_iris_kit_status.console_id,
+                            g_iris_kit_status.remote_index,
                             g_iris_kit_status.key_id,
-                            g_iris_kit_status.key_name,
-                            g_iris_kit_status.remote_index);
+                            g_iris_kit_status.key_name);
     }
 }
 
