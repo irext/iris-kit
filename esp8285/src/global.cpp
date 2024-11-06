@@ -25,8 +25,8 @@
 
 #include "global.h"
 
-StaticJsonDocument<512> http_request_doc;
-StaticJsonDocument<512> http_response_doc;
+StaticJsonDocument<1024> http_request_doc;
+StaticJsonDocument<1024> http_response_doc;
 
 // out solicited request message
 StaticJsonDocument<512> mqtt_upstream_topic_msg_doc;
