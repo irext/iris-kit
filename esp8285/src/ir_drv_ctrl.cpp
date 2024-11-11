@@ -43,6 +43,9 @@ extern iris_kit_status_t g_iris_kit_status;
 
 
 // public variable definitions
+decode_results g_recv_results;
+
+String g_recv_ir_code_str = "";
 
 
 // private variable definitions
@@ -184,16 +187,15 @@ int completeStudyIR(String &ir_data) {
 }
 
 void recvIR() {
-    decode_results results;
-    if (ir_recv->decode(&results)) {
-        INFOF("Recv IR, raw length = %d\n", results.rawlen - 1);
+    if (ir_recv->decode(&g_recv_results)) {
+        INFOF("Recv IR, raw length = %d\n", g_recv_results.rawlen - 1);
         String raw_data;
-        for (int i = 1; i < results.rawlen; i++) {
-            raw_data += String(*(results.rawbuf + i) * kRawTick) + ",";
+        for (int i = 1; i < g_recv_results.rawlen; i++) {
+            raw_data += String(*(g_recv_results.rawbuf + i) * kRawTick) + ",";
         }
         ir_recv->resume();
         INFOLN(raw_data.c_str());
-        saveReceived(results);
+        saveReceived(g_recv_results);
         processStatusChange(IRIS_KIT_STATUS_STUDIED,
                             g_iris_kit_status.console_id,
                             g_iris_kit_status.remote_index,
@@ -205,11 +207,14 @@ void recvIR() {
 bool saveReceived(decode_results& results) {
     String save_path = SAVE_PATH;
     String file_name = "";
+    uint16_t max_time_slice = 0;
+    char time_slice[16] = { 0 };
 
     if (g_iris_kit_status.remote_index.isEmpty()) {
         return false;
     }
 
+#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Save received code to: %s\n", save_path.c_str());
@@ -218,10 +223,26 @@ bool saveReceived(decode_results& results) {
         ERRORF("Failed to create file\n");
         return false;
     }
-    for (size_t i = 0; i < results.rawlen; i++)
-        *(results.rawbuf + i) = *(results.rawbuf + i) * kRawTick;
-    cache.write((char *)(results.rawbuf + 1), (results.rawlen - 1) * 2);
+#endif
+
+    for (size_t i = 0; i < results.rawlen; i++) {
+        memset(time_slice, 0, sizeof(time_slice));
+        if (*(results.rawbuf + i) > max_time_slice) {
+            max_time_slice = *(results.rawbuf + i);
+        }
+        snprintf(time_slice, 15, "%d", *(results.rawbuf + i));
+        g_recv_ir_code_str += String(time_slice) + ",";
+    }
+    // append tail code
+    max_time_slice = 2 * max_time_slice;
+    snprintf(time_slice, 15, "%d", max_time_slice);
+    g_recv_ir_code_str += String(time_slice);
+
+#if defined STORE_RECEIVED_TO_TMP_FILE
+    cache.write(g_recv_ir_code_str.c_str(), g_recv_ir_code_str.length());
     cache.close();
+#endif
+
     return true;
 }
 
@@ -232,10 +253,13 @@ bool removeReceived() {
     if (g_iris_kit_status.remote_index.isEmpty()) {
         return false;
     }
+
+#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Delete received code file: %s\n", save_path.c_str());
     LittleFS.remove(save_path);
+#endif
 
     return true;
 }
@@ -248,6 +272,7 @@ int loadReceived(String &ir_data) {
         return -1;
     }
 
+#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Load received code from: %s\n", save_path.c_str());
@@ -259,6 +284,9 @@ int loadReceived(String &ir_data) {
     }
     ir_data = cache.readString();
     cache.close();
+#else
+    ir_data = g_recv_ir_code_str;
+#endif
 
     return ir_data.length();
 }

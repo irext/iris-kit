@@ -231,7 +231,7 @@ void handleIrisKitMessage(const char* data, int length) {
             String product_key = mqtt_downstream_topic_msg_doc["productKey"];
             String device_name = mqtt_downstream_topic_msg_doc["deviceName"];
             String content = mqtt_downstream_topic_msg_doc["content"];
-            INFOF("Received ind : %s\n", event_name.c_str());
+            INFOF("Received message : %s\n", event_name.c_str());
             ret = processEvent(event_name.c_str(), product_key, device_name, content);
             INFOF("Event handle result = %d\n", ret);
         }
