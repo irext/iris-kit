@@ -172,7 +172,9 @@ void sendStatus(String file, t_remote_ac_status status) {
 }
 
 void prepareStudyIR() {
+#if defined STORE_RECEIVED_IR_DATA
     removeReceived();
+#endif
     enableIRIn();
 }
 
@@ -183,19 +185,39 @@ void cancelStudyIR() {
 int completeStudyIR(String &ir_data) {
     // called unsolicited
     disableIRIn();
-    return loadReceived(ir_data);
+#if defined STORE_RECEIVED_IR_DATA
+    loadReceived(ir_data);
+#else
+    ir_data = g_recv_ir_code_str;
+#endif
+    DEBUGF("loaded received code : %s\n", ir_data.c_str());
+
+    return ir_data.length();
 }
 
 void recvIR() {
+    int max_time_slice = 0;
+    int time_slice = 0;
     if (ir_recv->decode(&g_recv_results)) {
         INFOF("Recv IR, raw length = %d\n", g_recv_results.rawlen - 1);
-        String raw_data;
+        g_recv_ir_code_str.clear();
         for (int i = 1; i < g_recv_results.rawlen; i++) {
-            raw_data += String(*(g_recv_results.rawbuf + i) * kRawTick) + ",";
+            time_slice = *(g_recv_results.rawbuf + i) * kRawTick;
+            if (time_slice > max_time_slice) {
+                max_time_slice = time_slice;
+            }
+            g_recv_ir_code_str += String(time_slice) + ",";
         }
+        g_recv_ir_code_str += String(3 * max_time_slice);
+
         ir_recv->resume();
-        INFOLN(raw_data.c_str());
-        saveReceived(g_recv_results);
+
+        DEBUGLN(g_recv_ir_code_str.c_str());
+
+#if defined STORE_RECEIVED_IR_DATA
+        saveReceived(g_recv_ir_code_str);
+#endif
+
         processStatusChange(IRIS_KIT_STATUS_STUDIED,
                             g_iris_kit_status.console_id,
                             g_iris_kit_status.remote_index,
@@ -204,17 +226,14 @@ void recvIR() {
     }
 }
 
-bool saveReceived(decode_results& results) {
+bool saveReceived(String& ir_data) {
     String save_path = SAVE_PATH;
     String file_name = "";
-    uint16_t max_time_slice = 0;
-    char time_slice[16] = { 0 };
 
     if (g_iris_kit_status.remote_index.isEmpty()) {
         return false;
     }
 
-#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Save received code to: %s\n", save_path.c_str());
@@ -223,25 +242,9 @@ bool saveReceived(decode_results& results) {
         ERRORF("Failed to create file\n");
         return false;
     }
-#endif
 
-    for (size_t i = 0; i < results.rawlen; i++) {
-        memset(time_slice, 0, sizeof(time_slice));
-        if (*(results.rawbuf + i) > max_time_slice) {
-            max_time_slice = *(results.rawbuf + i);
-        }
-        snprintf(time_slice, 15, "%d", *(results.rawbuf + i));
-        g_recv_ir_code_str += String(time_slice) + ",";
-    }
-    // append tail code
-    max_time_slice = 2 * max_time_slice;
-    snprintf(time_slice, 15, "%d", max_time_slice);
-    g_recv_ir_code_str += String(time_slice);
-
-#if defined STORE_RECEIVED_TO_TMP_FILE
-    cache.write(g_recv_ir_code_str.c_str(), g_recv_ir_code_str.length());
+    cache.write(ir_data.c_str(), ir_data.length());
     cache.close();
-#endif
 
     return true;
 }
@@ -254,12 +257,10 @@ bool removeReceived() {
         return false;
     }
 
-#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
     INFOF("Delete received code file: %s\n", save_path.c_str());
     LittleFS.remove(save_path);
-#endif
 
     return true;
 }
@@ -272,10 +273,9 @@ int loadReceived(String &ir_data) {
         return -1;
     }
 
-#if defined STORE_RECEIVED_TO_TMP_FILE
     file_name = "ir_" + g_iris_kit_status.remote_index + RECEIVED_SUFFIX;
     save_path += file_name;
-    INFOF("Load received code from: %s\n", save_path.c_str());
+    DEBUGF("Load received code from: %s\n", save_path.c_str());
 
     File cache = LittleFS.open(save_path, "r");
     if (!cache) {
@@ -284,9 +284,8 @@ int loadReceived(String &ir_data) {
     }
     ir_data = cache.readString();
     cache.close();
-#else
-    ir_data = g_recv_ir_code_str;
-#endif
+
+    DEBUGF("received code : %s\n", ir_data.c_str());
 
     return ir_data.length();
 }

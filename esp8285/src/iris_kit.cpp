@@ -100,7 +100,7 @@ void setup() {
     INFOF("██║██╔══██╗██║╚════██║\n");
     INFOF("██║██║  ██║██║███████║\n");
     INFOF("╚═╝╚═╝  ╚═╝╚═╝╚══════╝\n");
-    INFOF("== IRIS Kit [1.3.1_r1] Powered by AliyunIoT ==\n");
+    INFOF("== IRIS Kit [1.4.0_r1] Powered by AliyunIoT ==\n");
 
     // try loading saved iriskit settings
     iriskit_settings.credential_token.clear();

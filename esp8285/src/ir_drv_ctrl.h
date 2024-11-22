@@ -54,7 +54,7 @@ int completeStudyIR(String &ir_data);
 
 void recvIR();
 
-bool saveReceived(decode_results &results);
+bool saveReceived(String &results);
 
 bool removeReceived();
 

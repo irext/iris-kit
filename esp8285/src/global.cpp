@@ -35,7 +35,7 @@ StaticJsonDocument<512> mqtt_upstream_topic_msg_doc;
 StaticJsonDocument<512> mqtt_upstream_topic_rsp_doc;
 
 // out unsolicited message
-StaticJsonDocument<512> mqtt_upstream_topic_ind_doc;
+StaticJsonDocument<2048> mqtt_upstream_topic_ind_doc;
 
 // out heartbeat message
 StaticJsonDocument<512> mqtt_upstream_topic_hbt_doc;
