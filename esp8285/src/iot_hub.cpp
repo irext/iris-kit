@@ -98,7 +98,7 @@ int connectIot() {
     conn_ret = connectToAliot(g_mqtt_client);
 
     if (0 != conn_ret) {
-        INFOF("Try connecting to IoT %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
+        INFOF("Try connecting to EMQX %s:%d, client_id = %s, user_name = %s, password.size = %d\n",
             g_mqtt_server.c_str(), g_mqtt_port,
             g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.length());
         conn_ret = connectToEMQXBroker(g_mqtt_client);

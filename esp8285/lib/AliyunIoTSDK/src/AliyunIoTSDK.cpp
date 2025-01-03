@@ -118,6 +118,7 @@ static void callback(char *topic, byte *payload, unsigned int length) {
 }
 
 static bool mqttConnecting = false;
+
 int AliyunIoTSDK::mqttCheckConnect() {
     int mqttStatus = 0;
     int connectRetry = 0;
@@ -146,11 +147,11 @@ int AliyunIoTSDK::mqttCheckConnect() {
                     Serial.println(client->state());
                     delay(MQTT_WAIT_GENERIC);
                     connectRetry++;
-                    Serial.print("INFO:\tretry: ");
+                    Serial.print("INFO:\tAliot connection retry: ");
                     Serial.println(connectRetry);
                     mqttStatus = -1;
                     if (connectRetry > MQTT_CONNECT_RETRY_MAX) {
-                        Serial.println("ERROR:\t max connect retry times reached");
+                        Serial.println("ERROR:\tMax connect retry times reached");
                         break;
                     }
                 }
@@ -204,7 +205,7 @@ int AliyunIoTSDK::begin(PubSubClient &mqtt_client,
 #if defined USE_STANDARD_THING_MODEL_TOPIC
     client.setCallback(callback);
 #endif
-    Serial.print("INFO\tconnection check in begin\n");
+    Serial.print("INFO\tConnection check in begin\n");
     return mqttCheckConnect();
 }
 
