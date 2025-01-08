@@ -123,16 +123,16 @@ int AliyunIoTSDK::mqttCheckConnect() {
     int mqttStatus = 0;
     int connectRetry = 0;
 
-    Serial.println("INFO:\tAlink MQTT connection checking...");
+    Serial.println("INFO: Alink MQTT connection checking...");
 
     if (client != NULL && false == mqttConnecting) {
-        Serial.print("INFO:\tAlink MQTT client state = ");
+        Serial.print("INFO: Alink MQTT client state = ");
         Serial.println(client->state());
         if (MQTT_CONNECTED != client->state()) {
             connectRetry = 0;
             while (false == client->connected()) {
                 client->disconnect();
-                Serial.print("INFO:\tConnecting to MQTT Server, clientId = ");
+                Serial.print("INFO: Connecting to MQTT Server, clientId = ");
                 Serial.print(clientId);
                 Serial.print(", mqttUserName = ");
                 Serial.print(mqttUsername);
@@ -141,17 +141,17 @@ int AliyunIoTSDK::mqttCheckConnect() {
                 mqttConnecting = true;
 
                 if (client->connect(clientId, mqttUsername, mqttPwd)) {
-                    Serial.println("INFO:\tMQTT Connected!");
+                    Serial.println("INFO: MQTT Connected!");
                 } else {
-                    Serial.print("ERROR:\tMQTT Connect err: ");
+                    Serial.print("ERROR: MQTT Connect err: ");
                     Serial.println(client->state());
                     delay(MQTT_WAIT_GENERIC);
                     connectRetry++;
-                    Serial.print("INFO:\tAliot connection retry: ");
+                    Serial.print("INFO: Aliot connection retry: ");
                     Serial.println(connectRetry);
                     mqttStatus = -1;
                     if (connectRetry > MQTT_CONNECT_RETRY_MAX) {
-                        Serial.println("ERROR:\tMax connect retry times reached");
+                        Serial.println("ERROR: Max connect retry times reached");
                         break;
                     }
                 }

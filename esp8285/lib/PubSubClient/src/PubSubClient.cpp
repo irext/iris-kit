@@ -207,7 +207,7 @@ boolean PubSubClient::connect(const char *id, const char *user, const char *pass
                     return true;
                 } else {
                     _state = buffer[3];
-                    Serial.print("INFO:\tMQTT connection responded :");
+                    Serial.print("INFO: MQTT connection responded :");
                     Serial.println(_state);
                 }
             }
