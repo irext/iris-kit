@@ -31,24 +31,24 @@
 // generic COM debug
 
 #define DEBUGLN(...) \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.println(__VA_ARGS__);}}
+    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.println(__VA_ARGS__); } }
 #define DEBUGF(...) \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.printf(__VA_ARGS__); Serial.println();}}
+    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.printf(__VA_ARGS__); } }
 #define DEBUG(...)  \
-    {if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.print(__VA_ARGS__); Serial.println();}}
+    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.print(__VA_ARGS__); } }
 
 #define INFOLN(...) \
-    {if (LOG_INFO) { Serial.printf("INFO: "); Serial.println(__VA_ARGS__);}}
+    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.println(__VA_ARGS__); } }
 #define INFOF(...) \
-    {if (LOG_INFO) { Serial.printf("INFO: "); Serial.printf(__VA_ARGS__); Serial.println();}}
+    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.printf(__VA_ARGS__); } }
 #define INFO(...)  \
-    {if (LOG_INFO) { Serial.printf("INFO: "); Serial.print(__VA_ARGS__); Serial.println();}}
+    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.print(__VA_ARGS__); } }
 
 #define ERRORLN(...) \
-    {if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.println(__VA_ARGS__);}}
+    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.println(__VA_ARGS__); } }
 #define ERRORF(...) \
-    {if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.printf(__VA_ARGS__); Serial.println();}}
+    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.printf(__VA_ARGS__); } }
 #define ERROR(...)  \
-    {if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.print(__VA_ARGS__); Serial.println();}}
+    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.print(__VA_ARGS__); } }
 
 #endif // IRIS_KIT_SERIALS_H

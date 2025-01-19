@@ -75,11 +75,11 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
     }
     if (emqx_client->connected()) {
         INFOF("IoT connect done\n");
-        return 0;
     } else {
         ERRORF("IoT failed to connect\n");
-        return -1;
+        ESP.restart();
     }
+        return 0;
 }
 
 void emqxClientKeepAlive(PubSubClient& mqtt_client) {
