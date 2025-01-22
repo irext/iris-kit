@@ -62,7 +62,7 @@ int connectToAliot(PubSubClient& mqtt_client) {
     if (0 == res && mqtt_client.connected()) {
         INFOF("Aliyun IoT connected\n");
     } else {
-        ERRORF("Failed to connect to Aliyun IoT\n");
+        ERRORF("Failed to connect to Aliyun IoT : %d\n", res);
         res = -1;
     }
     return res;

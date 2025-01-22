@@ -132,7 +132,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
             connectRetry = 0;
             while (false == client->connected()) {
                 client->disconnect();
-                Serial.print("INFO: Connecting to MQTT Server, clientId = ");
+                Serial.print("INFO: Connecting to Aliyun MQTT Server, clientId = ");
                 Serial.print(clientId);
                 Serial.print(", mqttUserName = ");
                 Serial.print(mqttUsername);
@@ -145,6 +145,7 @@ int AliyunIoTSDK::mqttCheckConnect() {
                 } else {
                     Serial.print("ERROR: MQTT Connect err: ");
                     Serial.println(client->state());
+                    client->disconnect();
                     delay(MQTT_WAIT_GENERIC);
                     connectRetry++;
                     Serial.print("INFO: Aliot connection retry: ");

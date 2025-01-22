@@ -139,6 +139,8 @@ void keepAliveIot() {
     unsigned long current_time = millis();
     if (current_time - last_check_time > 10000) {
         if (!g_mqtt_client.connected()) {
+            ERRORF("MQTT client is not connected, force disconnect and retry\n");
+            g_mqtt_client.disconnect();
             g_mqtt_client.unsubscribe(g_downstream_topic.c_str());
             g_subscribed = false;
             connectIot();
