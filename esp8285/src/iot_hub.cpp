@@ -107,7 +107,6 @@ int connectIot() {
         }
     } else {
         g_mqtt_type = MQTT_TYPE_ALIOT;
-        
     }
 
     if (0 != conn_ret) {

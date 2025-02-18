@@ -63,7 +63,9 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
     force_disconnected = false;
 
     while (!force_disconnected && !emqx_client->connected() && retry_times < MQTT_RETRY_MAX) {
-        INFOF("Connecting to MQTT Broker as %s.....\n", g_mqtt_client_id.c_str());
+        INFOF("Connecting to MQTT Broker, client_id = %s, user_name = %s\n",
+               g_mqtt_client_id.c_str(),
+               g_mqtt_user_name.c_str());
         if (emqx_client->connect(g_mqtt_client_id.c_str(), g_mqtt_user_name.c_str(), g_mqtt_password.c_str())) {
             INFOF("Connected to MQTT broker\n");
         } else {
@@ -79,7 +81,7 @@ int connectToEMQXBroker(PubSubClient &mqtt_client) {
         ERRORF("IoT failed to connect\n");
         ESP.restart();
     }
-        return 0;
+    return 0;
 }
 
 void emqxClientKeepAlive(PubSubClient& mqtt_client) {
