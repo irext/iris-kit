@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2024 IRbaby-IRext
+ * Copyright (c) 2020-2025 IRext Opensource Organization
  *
  * Author: Strawmanbobi and Caffreyfans
  *
