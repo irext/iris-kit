@@ -31,8 +31,8 @@ typedef short int16_t;
 typedef unsigned char uint8_t;
 
 /* ----------------- version defs ----------------- */
-#define FIRMWARE_VERSION              "1.3.0"
-#define VERSION_CODE                  (2)
+#define FIRMWARE_VERSION              "1.5.1"
+#define VERSION_CODE                  (1)
 
 /* ----------------- log settings ----------------- */
 #define BAUD_RATE                     (115200)

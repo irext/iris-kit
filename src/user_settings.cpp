@@ -143,31 +143,6 @@ bool loadSettings() {
     return ret;
 }
 
-bool saveACStatus(String file, t_remote_ac_status status) {
-    bool ret = true;
-    ACStatus[file]["power"] = (int)status.ac_power;
-    ACStatus[file]["temperature"] = (int)status.ac_temp;
-    ACStatus[file]["mode"] = (int)status.ac_mode;
-    ACStatus[file]["swing"] = (int)status.ac_swing;
-    ACStatus[file]["speed"] = (int)status.ac_wind_speed;
-    return ret;
-}
-
-t_remote_ac_status getACStatus(String file) {
-    t_remote_ac_status status;
-    int power = (int) ACStatus[file]["power"];
-    int temperature = (int) ACStatus[file]["temperature"];
-    int mode = (int) ACStatus[file]["mode"];
-    int swing = (int) ACStatus[file]["swing"];
-    int wind_speed = (int) ACStatus[file]["speed"];
-    status.ac_power = (t_ac_power)power;
-    status.ac_temp = (t_ac_temperature)temperature;
-    status.ac_mode = (t_ac_mode)mode;
-    status.ac_swing = (t_ac_swing)swing;
-    status.ac_wind_speed = (t_ac_wind_speed)wind_speed;
-    return status;
-}
-
 bool setIrisKitSettings(iris_kit_settings_t& iriskit_settings) {
     IrisKitSettings["server_address"] = iriskit_settings.server_address;
     IrisKitSettings["token"] = iriskit_settings.credential_token;

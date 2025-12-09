@@ -23,8 +23,6 @@
 
 #include <LittleFS.h>
 
-#include "defines.h"
-
 #include "global.h"
 #include "serials.h"
 #include "user_settings.h"
@@ -38,7 +36,7 @@
 #define IR_END_CODE      (10000)
 
 
-// external variable declaratoins
+// external variable declarations
 extern iris_kit_status_t g_iris_kit_status;
 
 
@@ -97,78 +95,6 @@ bool emitIR(String timing) {
         ir_send->sendRaw(series, parts_num + 1, 38);
     }
     return true;
-}
-
-bool sendCommand(String file_name, int key) {
-    String save_path = SAVE_PATH;
-    save_path += file_name;
-    if (LittleFS.exists(save_path)) {
-        File cache = LittleFS.open(save_path, "r");
-        if (cache) {
-            UINT16 content_size = cache.size();
-            INFOF("Send command, content size = %d\n", content_size);
-
-            if (content_size != 0) {
-                UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
-                cache.seek(0L, fs::SeekSet);
-                cache.readBytes((char *)content, content_size);
-                ir_binary_open(2, 1, content, content_size);
-                UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
-                UINT16 data_length = ir_decode(0, user_data, NULL, FALSE);
-
-                INFOF("Send command, data_length = %d\n", data_length);
-                if (LOG_DEBUG) {
-                    for (int i = 0; i < data_length; i++)
-                        Serial.printf("%d ", *(user_data + i));
-                    Serial.println();
-                }
-                ir_recv->disableIRIn();
-                ir_send->sendRaw(user_data, data_length, 38);
-                ir_close();
-                free(user_data);
-                free(content);
-            } else
-                ERRORF("Open %s is empty\n", save_path.c_str());
-        }
-        cache.close();
-    }
-    return true;
-}
-
-void sendStatus(String file, t_remote_ac_status status) {
-    String save_path = SAVE_PATH + file;
-    String url = String(DOWNLOAD_PREFIX) + file + String(DOWNLOAD_SUFFIX);
-
-    if (!LittleFS.exists(save_path)) {
-        downLoadFile(url, file, SAVE_PATH);
-    }
-
-    if (LittleFS.exists(save_path)) {
-        File cache = LittleFS.open(save_path, "r");
-        if (cache) {
-            UINT16 content_size = cache.size();
-            INFOF("Send status, content size = %d\n", content_size);
-
-            if (content_size != 0) {
-                UINT8 *content = (UINT8 *)malloc(content_size * sizeof(UINT8));
-                cache.seek(0L, fs::SeekSet);
-                cache.readBytes((char *)content, content_size);
-                ir_binary_open(REMOTE_CATEGORY_AC, 1, content, content_size);
-                UINT16 *user_data = (UINT16 *)malloc(IR_SERIES_MAX * sizeof(UINT16));
-                UINT16 data_length = ir_decode(0, user_data, &status, FALSE);
-
-                INFOF("Send status, data_length = %d\n", data_length);
-                ir_recv->disableIRIn();
-                ir_send->sendRaw(user_data, data_length, 38);
-                ir_close();
-                free(user_data);
-                free(content);
-                saveACStatus(file, status);
-            } else
-                ERRORF("Open %s is empty\n", save_path.c_str());
-        }
-        cache.close();
-    }
 }
 
 void prepareStudyIR() {

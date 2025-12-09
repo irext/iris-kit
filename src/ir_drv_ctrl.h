@@ -28,8 +28,6 @@
 #include <IRsend.h>
 #include <IRrecv.h>
 
-#include "ir_decode.h"
-
 void loadIRPin(uint8_t send_pin, uint8_t recv_pin);
 
 void enableIRIn();
@@ -41,10 +39,6 @@ bool downloadBin(int remote_id);
 bool sendIR(String file_name);
 
 bool emitIR(String timing);
-
-bool sendCommand(String file_name, int key);
-
-void sendStatus(String file_name, t_remote_ac_status status);
 
 void prepareStudyIR();
 

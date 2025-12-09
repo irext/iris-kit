@@ -28,16 +28,11 @@
 
 #include "iris_kit.h"
 
-#include "ir_ac_control.h"
-
 /* save settings */
 bool saveSettings();
 
 /* load settings */
 bool loadSettings();
-
-bool saveACStatus(String file, t_remote_ac_status status);
-t_remote_ac_status getACStatus(String file);
 
 bool setIrisKitSettings(iris_kit_settings_t& iriskit_settings);
 iris_kit_settings_t getIrisKitSettings();
