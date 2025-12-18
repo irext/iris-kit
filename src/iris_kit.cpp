@@ -55,26 +55,24 @@ extern String g_mqtt_password;
 extern int g_app_id;
 
 // public variable definitions
-const unsigned long utcOffsetInMilliSeconds = 3600 * 1000;
+constexpr unsigned long utcOffsetInMilliSeconds = 3600 * 1000;
 
 int credential_init_retry = 0;
 int g_runtime_env = RUNTIME_RELEASE;
-iris_kit_settings_t iriskit_settings;
+iris_kit_settings_t iris_kit_settings;
 bool iris_kit_settings_loaded = false;
 iris_kit_status_t g_iris_kit_status = {
-    console_id: 0,
-    remote_index: "",
-    key_id: 0,
-    key_name: "",
-    status: IRIS_KIT_STATUS_IDLE
+    .console_id = 0,
+    .remote_index = "",
+    .key_id = 0,
+    .key_name = "",
+    .status = IRIS_KIT_STATUS_IDLE
 };
 
 
 // private variable definitions
-static Ticker iotCheckTask;            // IoT MQTT check timer
-static Ticker disableIRTask;           // disable IR receive
-static Ticker disableRFTask;           // disable RF receive
-static Ticker saveDataTask;            // save data
+static Ticker iot_check_task;            // IoT MQTT check timer
+static Ticker disable_ir_task;           // disable IR receive
 
 
 // private function declarations
@@ -82,7 +80,7 @@ static void wifiReset();
 
 // public function definitions
 void setup() {
-    if (LOG_DEBUG || LOG_ERROR || LOG_INFO) {
+    if constexpr (LOG_DEBUG || LOG_ERROR || LOG_INFO) {
         Serial.begin(BAUD_RATE);
     }
 
@@ -103,32 +101,32 @@ void setup() {
     Serial.print("== IRIS Kit [1.4.0_r1] Powered by AliyunIoT ==\n");
 
     // try loading saved iriskit settings
-    iriskit_settings.credential_token.clear();
-    iriskit_settings.server_address.clear();
-    iriskit_settings.password.clear();
+    iris_kit_settings.credential_token.clear();
+    iris_kit_settings.server_address.clear();
+    iris_kit_settings.password.clear();
 
     if (loadSettings()) {
-        iriskit_settings = getIrisKitSettings();
+        iris_kit_settings = getIrisKitSettings();
         INFOF("Saved credentials loaded\n");
-        INFOF("Server address is empty ? %s\n", iriskit_settings.server_address.isEmpty() ? "yes" : "no");
-        INFOF("Credential is empty ? %s\n", iriskit_settings.credential_token.isEmpty() ? "yes" : "no");
-        INFOF("Password is empty ? %s\n", iriskit_settings.password.isEmpty() ? "yes" : "no");
+        INFOF("Server address is empty ? %s\n", iris_kit_settings.server_address.isEmpty() ? "yes" : "no");
+        INFOF("Credential is empty ? %s\n", iris_kit_settings.credential_token.isEmpty() ? "yes" : "no");
+        INFOF("Password is empty ? %s\n", iris_kit_settings.password.isEmpty() ? "yes" : "no");
     }
-    if (!iriskit_settings.credential_token.isEmpty() &&
-        !iriskit_settings.credential_token.equalsIgnoreCase("NULL") &&
-        !iriskit_settings.server_address.isEmpty() &&
-        !iriskit_settings.server_address.equalsIgnoreCase("NULL") &&
-        !iriskit_settings.password.isEmpty() &&
-        !iriskit_settings.password.equalsIgnoreCase("NULL")) {
+    if (!iris_kit_settings.credential_token.isEmpty() &&
+        !iris_kit_settings.credential_token.equalsIgnoreCase("NULL") &&
+        !iris_kit_settings.server_address.isEmpty() &&
+        !iris_kit_settings.server_address.equalsIgnoreCase("NULL") &&
+        !iris_kit_settings.password.isEmpty() &&
+        !iris_kit_settings.password.equalsIgnoreCase("NULL")) {
         iris_kit_settings_loaded = true;
     }
 
     INFOF("Setting loaded = %s\n", iris_kit_settings_loaded ? "successfully" : "failed");
 
     // custom parameter for iris credentials
-    WiFiManagerParameter* server_address = NULL;
-    WiFiManagerParameter* credential_token = NULL;
-    WiFiManagerParameter* password = NULL;
+    WiFiManagerParameter* server_address = nullptr;
+    WiFiManagerParameter* credential_token = nullptr;
+    WiFiManagerParameter* password = nullptr;
 
     memset(iris_server_address, 0, URL_SHORT_MAX);
     memset(iris_credential_token, 0, CREDENTIAL_MAX);
@@ -136,9 +134,9 @@ void setup() {
 
     if (iris_kit_settings_loaded) {
         INFOF("Settings loaded\n");
-        strncpy(iris_server_address, iriskit_settings.server_address.c_str(), URL_SHORT_MAX - 1);
-        strncpy(iris_credential_token, iriskit_settings.credential_token.c_str(), CREDENTIAL_MAX - 1);
-        strncpy(iris_password, iriskit_settings.password.c_str(), PASSWORD_MAX - 1);
+        strncpy(iris_server_address, iris_kit_settings.server_address.c_str(), URL_SHORT_MAX - 1);
+        strncpy(iris_credential_token, iris_kit_settings.credential_token.c_str(), CREDENTIAL_MAX - 1);
+        strncpy(iris_password, iris_kit_settings.password.c_str(), PASSWORD_MAX - 1);
     }
     INFOF("Settings not loaded, set it from WifiManager\n");
     server_address =
@@ -148,7 +146,7 @@ void setup() {
     password =
         new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX, "type='password'");
 
-    if (NULL == server_address || NULL == credential_token || NULL == password) {
+    if (nullptr == server_address || nullptr == credential_token || nullptr == password) {
         ERRORF("Not enough memory to create settings\n");
         factoryReset();
     }
@@ -190,10 +188,10 @@ void setup() {
     } while (1);
 
     INFOF("Credential get : %s\n", iris_credential_token);
-    iriskit_settings.server_address = String(iris_server_address);
-    iriskit_settings.credential_token = String(iris_credential_token);
-    iriskit_settings.password = String(iris_password);
-    setIrisKitSettings(iriskit_settings);
+    iris_kit_settings.server_address = String(iris_server_address);
+    iris_kit_settings.credential_token = String(iris_credential_token);
+    iris_kit_settings.password = String(iris_password);
+    setIrisKitSettings(iris_kit_settings);
 
     resetIrisKitStatus();
 
@@ -216,7 +214,7 @@ void setup() {
         g_mqtt_server = String(MQTT_HOST_REL);
         g_runtime_env = RUNTIME_RELEASE;
     } else {
-        String iris_server_address_dev = iriskit_settings.server_address;
+        String iris_server_address_dev = iris_kit_settings.server_address;
         int delim = iris_server_address_dev.indexOf(':');
         if (delim != -1) {
             g_mqtt_server = iris_server_address_dev.substring(0, delim);
@@ -227,14 +225,14 @@ void setup() {
     }
 
     g_mqtt_client_id = g_device_name;
-    g_mqtt_password = iriskit_settings.password;
+    g_mqtt_password = iris_kit_settings.password;
 
     if (0 != connectIot()) {
         INFOF("Failed to connect IoT at startup\n");
     }
 
-    iotCheckTask.attach_scheduled(MQTT_CHECK_INTERVALS, checkIot);
-    disableIRTask.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIRIn);
+    iot_check_task.attach_scheduled(MQTT_CHECK_INTERVALS, checkIot);
+    disable_ir_task.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIRIn);
 }
 
 void loop() {
@@ -262,7 +260,7 @@ void factoryReset() {
     }
 }
 
-// private function defitions
+// private function definitions
 static void wifiReset() {
     INFOF("Reset settings\n");
     LittleFS.format();
