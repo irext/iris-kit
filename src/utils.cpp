@@ -32,31 +32,31 @@
 MD5Builder md5_builder;
 
 int split_string(const String source, char* parts[], const char* delimiter) {
-    char* pch = NULL;
-    char* copy = NULL;
-    char* tmp = NULL;
+    char* pch = nullptr;
+    char* copy = nullptr;
+    char* tmp = nullptr;
     int i = 0;
 
     copy = strdup(source.c_str());
-    if (NULL == copy) {
+    if (nullptr == copy) {
         goto exit;
     }
 
     pch = strtok(copy, delimiter);
 
     tmp = strdup(pch);
-    if (NULL == tmp) {
+    if (nullptr == tmp) {
         goto exit;
     }
 
     parts[i++] = tmp;
 
     while (pch) {
-        pch = strtok(NULL, delimiter);
-        if (NULL == pch) break;
+        pch = strtok(nullptr, delimiter);
+        if (nullptr == pch) break;
 
         tmp = strdup(pch);
-        if (NULL == tmp) {
+        if (nullptr == tmp) {
             goto exit;
         }
 
