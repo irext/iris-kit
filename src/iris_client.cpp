@@ -92,7 +92,7 @@ event_handler_t event_handler_table[] = {
 
 // public function definitions
 int getIRISKitVersion(char *buffer, int buffer_size) {
-    if (NULL == buffer) {
+    if (nullptr == buffer) {
         return -1;
     }
     memset(buffer, 0, buffer_size);
@@ -123,7 +123,7 @@ int authIrisKit(String credential_token,
 
     http_error_t http_ret = HTTP_ERROR_GENERIC;
 
-    if (NULL != strstr(iris_server_address, "http://")) {
+    if (nullptr != strstr(iris_server_address, "http://")) {
         protocol_prefix = true;
     }
     if (protocol_prefix) {
@@ -185,7 +185,7 @@ bool downloadBin(int remote_id) {
     String download_bin_url;
     http_error_t http_ret = HTTP_ERROR_GENERIC;
 
-    if (NULL != strstr(iris_server_address, "http://")) {
+    if (nullptr != strstr(iris_server_address, "http://")) {
         protocol_prefix = true;
     }
     if (protocol_prefix) {
@@ -223,7 +223,7 @@ void sendIrisKitHeartBeat() {
 void handleIrisKitMessage(const char* data, int length) {
     int ret = 0;
     char* payload = (char*) malloc(length + 1);
-    if (NULL != payload) {
+    if (nullptr != payload) {
         strncpy(payload, data, length);
         payload[length] = '\0';
         INFOF("--> %s\n", payload);
@@ -238,7 +238,7 @@ void handleIrisKitMessage(const char* data, int length) {
         }
     }
 
-    if (NULL != payload) {
+    if (nullptr != payload) {
         free(payload);
     }
 }

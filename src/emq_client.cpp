@@ -46,7 +46,7 @@ extern int g_mqtt_port;
 
 // private variable definitions
 static bool force_disconnected = false;
-static PubSubClient* emqx_client = NULL;
+static PubSubClient* emqx_client = nullptr;
 
 // private function declarations
 
@@ -55,7 +55,7 @@ static PubSubClient* emqx_client = NULL;
 int connectToEMQXBroker(PubSubClient &mqtt_client) {
     int retry_times = 0;
 
-    if (NULL == emqx_client) {
+    if (nullptr == emqx_client) {
         emqx_client = &mqtt_client;
     }
     emqx_client->setServer(g_mqtt_server.c_str(), g_mqtt_port);

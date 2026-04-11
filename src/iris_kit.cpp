@@ -113,11 +113,11 @@ void setup() {
         INFOF("Password is empty ? %s\n", iris_kit_settings.password.isEmpty() ? "yes" : "no");
     }
     if (!iris_kit_settings.credential_token.isEmpty() &&
-        !iris_kit_settings.credential_token.equalsIgnoreCase("NULL") &&
+        !iris_kit_settings.credential_token.equalsIgnoreCase("nullptr") &&
         !iris_kit_settings.server_address.isEmpty() &&
-        !iris_kit_settings.server_address.equalsIgnoreCase("NULL") &&
+        !iris_kit_settings.server_address.equalsIgnoreCase("nullptr") &&
         !iris_kit_settings.password.isEmpty() &&
-        !iris_kit_settings.password.equalsIgnoreCase("NULL")) {
+        !iris_kit_settings.password.equalsIgnoreCase("nullptr")) {
         iris_kit_settings_loaded = true;
     }
 
@@ -210,7 +210,7 @@ void setup() {
     loadIRPin(send_pin, recv_pin);
 
     // prepare MQTT connection params
-    if (NULL != strstr(iris_server_address, "iris.irext.net")) {
+    if (nullptr != strstr(iris_server_address, "iris.irext.net")) {
         g_mqtt_server = String(MQTT_HOST_REL);
         g_runtime_env = RUNTIME_RELEASE;
     } else {

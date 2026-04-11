@@ -166,7 +166,7 @@ void checkIot() {
 
 void iotCallback(char *topic, uint8_t *data, uint32_t length) {
     INFOF("Downstream message received, topic = %s, length = %d\n", topic, length);
-    if (NULL != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
+    if (nullptr != g_downstream_topic.c_str() && 0 == strcmp(topic, g_downstream_topic.c_str())) {
         handleIrisKitMessage((const char*) data, length);
     }
 }
