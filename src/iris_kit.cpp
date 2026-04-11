@@ -144,7 +144,7 @@ void setup() {
     credential_token =
         new WiFiManagerParameter("credential_token", "Credential Token", "", CREDENTIAL_MAX);
     password =
-        new WiFiManagerParameter("password", "User Password", "", PASSWORD_MAX, "type='password'");
+        new WiFiManagerParameter("password", "IRext User Password", "", PASSWORD_MAX, "type='password'");
 
     if (nullptr == server_address || nullptr == credential_token || nullptr == password) {
         ERRORF("Not enough memory to create settings\n");
