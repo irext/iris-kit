@@ -113,20 +113,20 @@ void setup() {
         INFOF("Password is empty ? %s\n", iris_kit_settings.password.isEmpty() ? "yes" : "no");
     }
     if (!iris_kit_settings.credential_token.isEmpty() &&
-        !iris_kit_settings.credential_token.equalsIgnoreCase("nullptr") &&
+        !iris_kit_settings.credential_token.equalsIgnoreCase("NULL") &&
         !iris_kit_settings.server_address.isEmpty() &&
-        !iris_kit_settings.server_address.equalsIgnoreCase("nullptr") &&
+        !iris_kit_settings.server_address.equalsIgnoreCase("NULL") &&
         !iris_kit_settings.password.isEmpty() &&
-        !iris_kit_settings.password.equalsIgnoreCase("nullptr")) {
+        !iris_kit_settings.password.equalsIgnoreCase("NULL")) {
         iris_kit_settings_loaded = true;
     }
 
     INFOF("Setting loaded = %s\n", iris_kit_settings_loaded ? "successfully" : "failed");
 
     // custom parameter for iris credentials
-    WiFiManagerParameter* server_address = nullptr;
-    WiFiManagerParameter* credential_token = nullptr;
-    WiFiManagerParameter* password = nullptr;
+    WiFiManagerParameter* server_address = NULL;
+    WiFiManagerParameter* credential_token = NULL;
+    WiFiManagerParameter* password = NULL;
 
     memset(iris_server_address, 0, URL_SHORT_MAX);
     memset(iris_credential_token, 0, CREDENTIAL_MAX);
@@ -146,7 +146,7 @@ void setup() {
     password =
         new WiFiManagerParameter("password", "IRext User Password", "", PASSWORD_MAX, "type='password'");
 
-    if (nullptr == server_address || nullptr == credential_token || nullptr == password) {
+    if (NULL == server_address || NULL == credential_token || NULL == password) {
         ERRORF("Not enough memory to create settings\n");
         factoryReset();
     }
