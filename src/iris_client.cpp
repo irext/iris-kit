@@ -64,7 +64,7 @@ static String buildStudyCompletedIndication(String ir_data,
 static String buildStudyErrorIndication(int console_id, String remote_index, int key_id, String key_name);
 static String buildStudyCancelledResponse(int console_id, String remote_index, int key_id, String key_name);
 static int handleConnected(String product_key, String device_name, String content);
-static int handleHartBeat(String product_key, String device_name, String content);
+static int handleHeartBeat(String product_key, String device_name, String content);
 static int handleEmit(String product_key, String device_name, String content);
 static int handleNotifyStatus(String product_key, String device_name, String content);
 
@@ -78,7 +78,7 @@ event_handler_t event_handler_table[] = {
     },
     {
         "__hb_response",
-        handleHartBeat,
+        handleHeartBeat,
     },
     {
         "__emit_code",
@@ -432,7 +432,7 @@ static int handleConnected(String product_key, String device_name, String conten
     return 0;
 }
 
-static int handleHartBeat(String product_key, String device_name, String content) {
+static int handleHeartBeat(String product_key, String device_name, String content) {
     INFOF("Received heartbeat : %s, %s\n", product_key.c_str(), device_name.c_str());
     return 0;
 }
