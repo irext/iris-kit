@@ -320,11 +320,14 @@ void resetIrisKitStatus() {
 // private function definitions
 static String buildConnect() {
     String connectMessage = "";
+    char version_buffer[32] = { 0 };
 
     mqtt_upstream_topic_msg_doc.clear();
     mqtt_upstream_topic_msg_doc["eventName"] = String(EVENT_NAME_CONNECT);
     mqtt_upstream_topic_msg_doc["productKey"] = g_product_key;
     mqtt_upstream_topic_msg_doc["deviceName"] = g_device_name;
+    getIRISKitVersion(version_buffer, sizeof(version_buffer));
+    mqtt_upstream_topic_msg_doc["currentVersion"] = String(version_buffer);
     serializeJson(mqtt_upstream_topic_msg_doc, connectMessage);
 
     return connectMessage;
@@ -332,12 +335,16 @@ static String buildConnect() {
 
 static String buildHeartBeat() {
     String heartBeatMessage = "";
+    char version_buffer[32] = { 0 };
 
     mqtt_upstream_topic_hbt_doc.clear();
     mqtt_upstream_topic_hbt_doc["eventName"] = String(EVENT_HEART_BEAT_REQ);
     mqtt_upstream_topic_hbt_doc["productKey"] = g_product_key;
     mqtt_upstream_topic_hbt_doc["deviceName"] = g_device_name;
     mqtt_upstream_topic_hbt_doc["appId"] = g_app_id;
+    getIRISKitVersion(version_buffer, sizeof(version_buffer));
+    mqtt_upstream_topic_hbt_doc["currentVersion"] = String(version_buffer);
+    
     serializeJson(mqtt_upstream_topic_hbt_doc, heartBeatMessage);
 
     return heartBeatMessage;
