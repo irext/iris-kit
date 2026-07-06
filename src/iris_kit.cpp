@@ -37,6 +37,7 @@
 #include "serials.h"
 #include "user_settings.h"
 #include "utils.h"
+#include "ota_manager.h"
 
 #include "iris_kit.h"
 
@@ -76,7 +77,7 @@ static Ticker disable_ir_task;           // disable IR receive
 
 
 // private function declarations
-static void wifiReset();
+
 
 // public function definitions
 void setup() {
@@ -230,6 +231,9 @@ void setup() {
     if (0 != connectIot()) {
         INFOF("Failed to connect IoT at startup\n");
     }
+    INFOF("connect message sent\n");
+
+    initOTA();
 
     iot_check_task.attach_scheduled(MQTT_CHECK_INTERVALS, checkIot);
     disable_ir_task.attach_scheduled(DISABLE_SIGNAL_INTERVALS, disableIRIn);
@@ -260,15 +264,22 @@ void factoryReset() {
     }
 }
 
-// private function definitions
-static void wifiReset() {
+void wifiRestart()
+{
+    INFOF("Rebooting\n");
+    WiFi.disconnect(false);
+    delay(SYSTEM_DELAY);
+    ESP.restart();
+}
+
+void wifiReset() {
     INFOF("Reset settings\n");
     LittleFS.format();
     wifi_manager.resetSettings();
-    WiFi.mode(WIFI_AP_STA); // cannot erase if not in STA mode !
+    WiFi.mode(WIFI_AP_STA);
     WiFi.persistent(true);
     WiFi.disconnect(true);
     WiFi.persistent(false);
     delay(SYSTEM_DELAY);
-    ESP.reset();
+    ESP.restart();
 }

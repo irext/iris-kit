@@ -72,6 +72,16 @@ typedef struct {
 #define NOTIFY_STUDY_COMPLETED       "study_completed"
 #define NOTIFY_STUDY_ERROR           "study_error"
 
+// event names for handler table
+#define EVENT_NAME_CONNECTED         "__connected"
+#define EVENT_NAME_HB_RESPONSE       "__hb_response"
+#define EVENT_NAME_EMIT_CODE         "__emit_code"
+#define EVENT_NAME_NOTIFY_STATUS     "__notify_status"
+#define EVENT_NAME_REBOOT            "__reboot"
+#define EVENT_NAME_RESET             "__reset"
+#define EVENT_NAME_FIRMWARE_UPDATE   "__firmware_update"
+
+
 typedef int (*eventHandler)(String, String, String);
 typedef struct {
     const char* event_name;

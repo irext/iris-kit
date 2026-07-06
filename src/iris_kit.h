@@ -36,4 +36,8 @@ typedef struct {
 
 void IRAM_ATTR factoryReset();
 
+void wifiRestart();
+
+void wifiReset();
+
 #endif // IRIS_KIT_H

@@ -38,13 +38,13 @@
 extern String g_product_key;
 extern String g_device_name;
 extern String g_upstream_topic;
+extern int g_app_id;
 
 // private variable definitions
 static ota_status_t current_ota_status = OTA_STATUS_IDLE;
-static ota_callback_t ota_callback = nullptr;
 static String pending_firmware_url = "";
 static String pending_version = "";
-static int pending_version_code = 0;
+static int current_download_percent = 0;
 
 // private function declarations
 static void httpUpdateStarted();
@@ -63,7 +63,7 @@ void initOTA() {
     current_ota_status = OTA_STATUS_IDLE;
 }
 
-int startOTAUpgrade(const String& firmware_url, const String& target_version, int target_version_code) {
+int startOTAUpgrade(const String& firmware_url, const String& target_version) {
     if (firmware_url.isEmpty()) {
         ERRORF("Firmware URL is empty\n");
         return -1;
@@ -77,48 +77,51 @@ int startOTAUpgrade(const String& firmware_url, const String& target_version, in
     }
     
     INFOF("Starting OTA upgrade from: %s\n", firmware_url.c_str());
-    INFOF("Target version: %s (code: %d)\n", target_version.c_str(), target_version_code);
+    INFOF("Target version: %s\n", target_version.c_str());
     
     // Store pending upgrade info
     pending_firmware_url = firmware_url;
     pending_version = target_version;
-    pending_version_code = target_version_code;
     
     // Update status
     current_ota_status = OTA_STATUS_DOWNLOADING;
     reportOTAStatus(OTA_STATUS_DOWNLOADING, "Downloading firmware...");
+    
+    INFOF("Starting HTTP update with WiFi client...\n");
     
     // Start HTTP update
     t_httpUpdate_return ret = ESPhttpUpdate.update(wifi_client, firmware_url);
     
     INFOF("HTTP update returned: %d\n", ret);
     
-    switch (ret) {
-        case HTTP_UPDATE_FAILED:
-            ERRORF("HTTP_UPDATE_FAILED: (%d) %s\n", 
-                   ESPhttpUpdate.getLastError(), 
-                   ESPhttpUpdate.getLastErrorString().c_str());
-            current_ota_status = OTA_STATUS_FAILED;
-            reportOTAStatus(OTA_STATUS_FAILED, ESPhttpUpdate.getLastErrorString().c_str());
-            return -1;
-            
-        case HTTP_UPDATE_NO_UPDATES:
-            INFOF("HTTP_UPDATE_NO_UPDATES - firmware is same or older\n");
-            current_ota_status = OTA_STATUS_IDLE;
-            reportOTAStatus(OTA_STATUS_IDLE, "No updates available");
-            return 0;
-            
-        case HTTP_UPDATE_OK:
-            INFOF("HTTP_UPDATE_OK - rebooting...\n");
-            current_ota_status = OTA_STATUS_SUCCESS;
-            reportOTAStatus(OTA_STATUS_SUCCESS, "Update successful, rebooting...");
-            
-            // Delay to allow MQTT message to be sent
-            delay(1000);
-            
-            current_ota_status = OTA_STATUS_REBOOTING;
-            ESP.restart();
-            return 0;
+    if (ret == HTTP_UPDATE_FAILED) {
+        int error_code = ESPhttpUpdate.getLastError();
+        String error_str = ESPhttpUpdate.getLastErrorString();
+        ERRORF("HTTP_UPDATE_FAILED: (%d) %s\n", error_code, error_str.c_str());
+        current_ota_status = OTA_STATUS_FAILED;
+        // Note: Do NOT report via MQTT - connection may be broken
+        // Reboot to ensure clean state, server will detect failure via unchanged version
+        delay(500);
+        current_ota_status = OTA_STATUS_REBOOTING;
+        ESP.restart();
+        return -1;
+    }
+    
+    if (ret == HTTP_UPDATE_NO_UPDATES) {
+        INFOF("HTTP_UPDATE_NO_UPDATES - firmware is same or older\n");
+        current_ota_status = OTA_STATUS_IDLE;
+        // Note: Do NOT report in MQTT - connection may be broken
+        return 0;
+    }
+    
+    if (ret == HTTP_UPDATE_OK) {
+        INFOF("HTTP_UPDATE_OK - rebooting...\n");
+        current_ota_status = OTA_STATUS_SUCCESS;
+        // Note: Do NOT report in MQTT - will reboot immediately
+        delay(500);
+        current_ota_status = OTA_STATUS_REBOOTING;
+        ESP.restart();
+        return 0;
     }
     
     return -1;
@@ -128,36 +131,64 @@ ota_status_t getOTAStatus() {
     return current_ota_status;
 }
 
-void setOTACallback(ota_callback_t callback) {
-    ota_callback = callback;
+void resetOTAStatus() {
+    current_ota_status = OTA_STATUS_IDLE;
+    current_download_percent = 0;
 }
 
 void reportOTAStatus(ota_status_t status, const String& message) {
     INFOF("OTA Status: %d, Message: %s\n", status, message.c_str());
-    
-    // Call user callback if set
-    if (ota_callback != nullptr) {
-        ota_callback(status, message.c_str());
+
+    StaticJsonDocument<512> doc;
+
+    String stage;
+    bool success = true;
+
+    switch (status) {
+        case OTA_STATUS_IDLE:
+            stage = "idle";
+            break;
+        case OTA_STATUS_DOWNLOADING:
+            stage = "downloading";
+            break;
+        case OTA_STATUS_SUCCESS:
+            stage = "completed";
+            break;
+        case OTA_STATUS_FAILED:
+            stage = "failed";
+            success = false;
+            break;
+        case OTA_STATUS_REBOOTING:
+            stage = "rebooting";
+            break;
     }
-    
-    // TODO: Send status to cloud via MQTT upstream topic
-    // This will be implemented after integrating with iris_client
+
+    doc["eventName"] = "__firmware_update_progress";
+    doc["productKey"] = g_product_key;
+    doc["deviceName"] = g_device_name;
+    doc["appId"] = String(g_app_id);
+    doc["consoleId"] = "0";
+    doc["stage"] = stage;
+    doc["message"] = message;
+    doc["success"] = success;
+
+    String mqtt_message;
+    serializeJson(doc, mqtt_message);
+    sendData(g_upstream_topic.c_str(), (uint8_t*)mqtt_message.c_str(), mqtt_message.length());
 }
 
 // private function definitions
 static void httpUpdateStarted() {
     INFOF("HTTP update started\n");
-    reportOTAStatus(OTA_STATUS_DOWNLOADING, "Download started");
 }
 
 static void httpUpdateProgress(int current, int total) {
-    static int last_percent = -1;
     int percent = (total > 0) ? (current * 100 / total) : 0;
     
-    // Only log every 10% to avoid spam
-    if (percent % 10 == 0 && percent != last_percent) {
+    // Only log locally during download to avoid MQTT issues
+    if (percent % 10 == 0 && percent != current_download_percent) {
+        current_download_percent = percent;
         INFOF("HTTP update progress: %d%% (%d/%d bytes)\n", percent, current, total);
-        last_percent = percent;
     }
 }
 

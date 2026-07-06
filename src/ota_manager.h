@@ -37,20 +37,17 @@ typedef enum {
     OTA_STATUS_REBOOTING = 4,
 } ota_status_t;
 
-// OTA upgrade result callback
-typedef void (*ota_callback_t)(ota_status_t status, const char* message);
-
 // Initialize OTA manager
 void initOTA();
 
 // Start firmware upgrade from URL
-int startOTAUpgrade(const String& firmware_url, const String& target_version, int target_version_code);
+int startOTAUpgrade(const String& firmware_url, const String& target_version);
 
 // Get current OTA status
 ota_status_t getOTAStatus();
 
-// Set OTA status callback
-void setOTACallback(ota_callback_t callback);
+// Reset OTA status to idle
+void resetOTAStatus();
 
 // Report OTA status to cloud via MQTT
 void reportOTAStatus(ota_status_t status, const String& message);
