@@ -50,6 +50,6 @@ ota_status_t getOTAStatus();
 void resetOTAStatus();
 
 // Report OTA status to cloud via MQTT
-void reportOTAStatus(ota_status_t status, const String& message);
+void reportOTAStatus(const String& message);
 
 #endif // IRIS_KIT_OTA_MANAGER_H

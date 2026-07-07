@@ -55,7 +55,7 @@ static void httpUpdateFinished();
 void initOTA() {
     INFOF("OTA Manager initialized\n");
     
-    // Set up HTTP update callbacks
+    // set up HTTP update callbacks
     ESPhttpUpdate.onStart(httpUpdateStarted);
     ESPhttpUpdate.onProgress(httpUpdateProgress);
     ESPhttpUpdate.onEnd(httpUpdateFinished);
@@ -69,7 +69,7 @@ int startOTAUpgrade(const String& firmware_url, const String& target_version) {
         return -1;
     }
     
-    // Check if already upgrading
+    // check if already upgrading
     if (current_ota_status == OTA_STATUS_DOWNLOADING || 
         current_ota_status == OTA_STATUS_REBOOTING) {
         ERRORF("OTA upgrade already in progress\n");
@@ -79,17 +79,17 @@ int startOTAUpgrade(const String& firmware_url, const String& target_version) {
     INFOF("Starting OTA upgrade from: %s\n", firmware_url.c_str());
     INFOF("Target version: %s\n", target_version.c_str());
     
-    // Store pending upgrade info
+    // store pending upgrade info
     pending_firmware_url = firmware_url;
     pending_version = target_version;
     
-    // Update status
+    // update status
     current_ota_status = OTA_STATUS_DOWNLOADING;
-    reportOTAStatus(OTA_STATUS_DOWNLOADING, "Downloading firmware...");
+    reportOTAStatus("Downloading");
     
     INFOF("Starting HTTP update with WiFi client...\n");
     
-    // Start HTTP update
+    // start HTTP update
     t_httpUpdate_return ret = ESPhttpUpdate.update(wifi_client, firmware_url);
     
     INFOF("HTTP update returned: %d\n", ret);
@@ -99,8 +99,8 @@ int startOTAUpgrade(const String& firmware_url, const String& target_version) {
         String error_str = ESPhttpUpdate.getLastErrorString();
         ERRORF("HTTP_UPDATE_FAILED: (%d) %s\n", error_code, error_str.c_str());
         current_ota_status = OTA_STATUS_FAILED;
-        // Note: Do NOT report via MQTT - connection may be broken
-        // Reboot to ensure clean state, server will detect failure via unchanged version
+        // note: do NOT report via MQTT - connection may be broken
+        // reboot to ensure clean state, server will detect failure via unchanged version
         delay(500);
         current_ota_status = OTA_STATUS_REBOOTING;
         ESP.restart();
@@ -110,14 +110,14 @@ int startOTAUpgrade(const String& firmware_url, const String& target_version) {
     if (ret == HTTP_UPDATE_NO_UPDATES) {
         INFOF("HTTP_UPDATE_NO_UPDATES - firmware is same or older\n");
         current_ota_status = OTA_STATUS_IDLE;
-        // Note: Do NOT report in MQTT - connection may be broken
+        // note: do NOT report in MQTT - connection may be broken
         return 0;
     }
     
     if (ret == HTTP_UPDATE_OK) {
         INFOF("HTTP_UPDATE_OK - rebooting...\n");
         current_ota_status = OTA_STATUS_SUCCESS;
-        // Note: Do NOT report in MQTT - will reboot immediately
+        // note: do NOT report in MQTT - will reboot immediately
         delay(500);
         current_ota_status = OTA_STATUS_REBOOTING;
         ESP.restart();
@@ -136,31 +136,24 @@ void resetOTAStatus() {
     current_download_percent = 0;
 }
 
-void reportOTAStatus(ota_status_t status, const String& message) {
-    INFOF("OTA Status: %d, Message: %s\n", status, message.c_str());
+void reportOTAStatus(const String& message) {
+    INFOF("OTA Status Message: %s\n", message.c_str());
 
     StaticJsonDocument<512> doc;
 
     String stage;
     bool success = true;
 
-    switch (status) {
-        case OTA_STATUS_IDLE:
-            stage = "idle";
-            break;
-        case OTA_STATUS_DOWNLOADING:
-            stage = "downloading";
-            break;
-        case OTA_STATUS_SUCCESS:
-            stage = "completed";
-            break;
-        case OTA_STATUS_FAILED:
-            stage = "failed";
-            success = false;
-            break;
-        case OTA_STATUS_REBOOTING:
-            stage = "rebooting";
-            break;
+    // determine stage and success from message
+    if (message == "Firmware Mismatch" || message == "Incorrect Version") {
+        stage = "failed";
+        success = false;
+    } else if (message == "Downloading") {
+        stage = "downloading";
+    } else {
+        // default to failed for unknown messages
+        stage = "failed";
+        success = false;
     }
 
     doc["eventName"] = "__firmware_update_progress";
@@ -185,7 +178,7 @@ static void httpUpdateStarted() {
 static void httpUpdateProgress(int current, int total) {
     int percent = (total > 0) ? (current * 100 / total) : 0;
     
-    // Only log locally during download to avoid MQTT issues
+    // only log locally during download to avoid MQTT issues
     if (percent % 10 == 0 && percent != current_download_percent) {
         current_download_percent = percent;
         INFOF("HTTP update progress: %d%% (%d/%d bytes)\n", percent, current, total);

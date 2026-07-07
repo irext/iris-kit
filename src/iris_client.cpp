@@ -519,10 +519,10 @@ static int handleNotifyStatus(String product_key, String device_name, String con
 static int handleReboot(String product_key, String device_name, String content) {
     (void) content;
     
-    // Ignore reboot command during OTA upgrade
+    // ignore reboot command during OTA upgrade
     ota_status_t ota_status = getOTAStatus();
     if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
-        INFOF("Ignoring reboot command during OTA upgrade (status=%d)\n", ota_status);
+        INFOF("Ignoring reboot command during OTA upgrade (status = %d)\n", ota_status);
         return -1;
     }
     
@@ -540,10 +540,10 @@ static int handleReboot(String product_key, String device_name, String content) 
 static int handleReset(String product_key, String device_name, String content) {
     (void) content;
     
-    // Ignore reset command during OTA upgrade
+    // ignore reset command during OTA upgrade
     ota_status_t ota_status = getOTAStatus();
     if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
-        INFOF("Ignoring reset command during OTA upgrade (status=%d)\n", ota_status);
+        INFOF("Ignoring reset command during OTA upgrade (status = %d)\n", ota_status);
         return -1;
     }
     
@@ -559,10 +559,10 @@ static int handleReset(String product_key, String device_name, String content) {
 }
 
 static int handleFirmwareUpdate(String product_key, String device_name, String content) {
-    // Ignore firmware update command if already upgrading
+    // ignore firmware update command if already upgrading
     ota_status_t ota_status = getOTAStatus();
     if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
-        INFOF("Ignoring firmware update command during OTA upgrade (status=%d)\n", ota_status);
+        INFOF("Ignoring firmware update command during OTA upgrade (status = %d)\n", ota_status);
         return -1;
     }
     
@@ -596,30 +596,7 @@ static int handleFirmwareUpdate(String product_key, String device_name, String c
     if (!name.equals("iris_kit")) {
         ERRORF("Component name mismatch: expected 'iris_kit', got '%s'\n", name.c_str());
 
-        mqtt_upstream_topic_msg_doc.clear();
-        mqtt_upstream_topic_msg_doc["eventName"] = "__firmware_update_progress";
-        mqtt_upstream_topic_msg_doc["productKey"] = g_product_key;
-        mqtt_upstream_topic_msg_doc["deviceName"] = g_device_name;
-        mqtt_upstream_topic_msg_doc["appId"] = g_app_id;
-        mqtt_upstream_topic_msg_doc["consoleId"] = 0;
-        mqtt_upstream_topic_msg_doc["remoteIndex"] = "";
-        mqtt_upstream_topic_msg_doc["keyId"] = 0;
-        mqtt_upstream_topic_msg_doc["keyName"] = "";
-        mqtt_upstream_topic_msg_doc["resp"] = "ota_progress";
-
-        StaticJsonDocument<256> payload_doc;
-        payload_doc["stage"] = "failed";
-        payload_doc["progress"] = 0;
-        payload_doc["message"] = "Component name mismatch";
-        payload_doc["success"] = false;
-
-        String payload_str;
-        serializeJson(payload_doc, payload_str);
-        mqtt_upstream_topic_msg_doc["payload"] = payload_str;
-
-        String mqtt_message;
-        serializeJson(mqtt_upstream_topic_msg_doc, mqtt_message);
-        sendData(g_upstream_topic.c_str(), (uint8_t*)mqtt_message.c_str(), mqtt_message.length());
+        reportOTAStatus("Firmware Mismatch");
 
         return -1;
     }
@@ -633,35 +610,12 @@ static int handleFirmwareUpdate(String product_key, String device_name, String c
         INFOF("Target version %s is not greater than current version %s, skip upgrade\n",
               target_version.c_str(), current_version.c_str());
 
-        mqtt_upstream_topic_msg_doc.clear();
-        mqtt_upstream_topic_msg_doc["eventName"] = "__firmware_update_progress";
-        mqtt_upstream_topic_msg_doc["productKey"] = g_product_key;
-        mqtt_upstream_topic_msg_doc["deviceName"] = g_device_name;
-        mqtt_upstream_topic_msg_doc["appId"] = g_app_id;
-        mqtt_upstream_topic_msg_doc["consoleId"] = 0;
-        mqtt_upstream_topic_msg_doc["remoteIndex"] = "";
-        mqtt_upstream_topic_msg_doc["keyId"] = 0;
-        mqtt_upstream_topic_msg_doc["keyName"] = "";
-        mqtt_upstream_topic_msg_doc["resp"] = "ota_progress";
-
-        StaticJsonDocument<256> payload_doc;
-        payload_doc["stage"] = "failed";
-        payload_doc["progress"] = 0;
-        payload_doc["message"] = "Target version is not greater than current version";
-        payload_doc["success"] = false;
-
-        String payload_str;
-        serializeJson(payload_doc, payload_str);
-        mqtt_upstream_topic_msg_doc["payload"] = payload_str;
-
-        String mqtt_message;
-        serializeJson(mqtt_upstream_topic_msg_doc, mqtt_message);
-        sendData(g_upstream_topic.c_str(), (uint8_t*)mqtt_message.c_str(), mqtt_message.length());
+        reportOTAStatus("Incorrect Version");
 
         return -1;
     }
 
-    INFOF("Starting OTA upgrade: version=%s, name=%s, url=%s\n",
+    INFOF("Starting OTA upgrade: version = %s, name = %s, url = %s\n",
           target_version.c_str(), name.c_str(), firmware_url.c_str());
 
     return startOTAUpgrade(firmware_url, target_version);
