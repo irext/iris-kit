@@ -99,7 +99,7 @@ void setup() {
     Serial.print("██║██╔══██╗██║╚════██║\n");
     Serial.print("██║██║  ██║██║███████║\n");
     Serial.print("╚═╝╚═╝  ╚═╝╚═╝╚══════╝\n");
-    Serial.print("== IRIS Kit [1.4.0_r1] Powered by AliyunIoT ==\n");
+    Serial.print("== IRIS Kit Powered by AliyunIoT ==\n");
 
     // try loading saved iriskit settings
     iris_kit_settings.credential_token.clear();
