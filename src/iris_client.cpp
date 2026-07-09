@@ -36,6 +36,9 @@
 #include "iot_hub.h"
 #include "http_client.h"
 #include "ir_drv_ctrl.h"
+#include "ota_manager.h"
+
+#include "iris_kit.h"
 
 #include "iris_client.h"
 
@@ -53,40 +56,74 @@ char iris_password[PASSWORD_MAX] = { 0 };
 
 // private function declarations
 static int processEvent(String event_name, String product_key, String device_name, String content);
+
 static String buildConnect();
+
 static String buildHeartBeat();
+
 static void buildGeneralResponse(String notify_name);
+
 static void buildGeneralIndication(String notify_name);
+
 static String buildTestResponse(int console_id);
+
 static String buildStudyPreparedResponse(int console_id, String remote_index, int key_id, String key_name);
+
 static String buildStudyCompletedIndication(String ir_data,
                                             int console_id, String remote_index, int key_id, String key_name);
+
 static String buildStudyErrorIndication(int console_id, String remote_index, int key_id, String key_name);
+
 static String buildStudyCancelledResponse(int console_id, String remote_index, int key_id, String key_name);
+
 static int handleConnected(String product_key, String device_name, String content);
+
 static int handleHeartBeat(String product_key, String device_name, String content);
+
 static int handleEmit(String product_key, String device_name, String content);
+
 static int handleNotifyStatus(String product_key, String device_name, String content);
 
+static int handleReboot(String product_key, String device_name, String content);
+
+static int handleReset(String product_key, String device_name, String content);
+
+static int compareVersions(const String& versionA, const String& versionB);
+
+static int handleFirmwareUpdate(String product_key, String device_name, String content);
+
 static int hb_count = 0;
+
 
 // private variable definitions
 event_handler_t event_handler_table[] = {
     {
-        "__connected",
-        handleConnected,
+        .event_name = EVENT_NAME_CONNECTED,
+        .handler = handleConnected,
     },
     {
-        "__hb_response",
-        handleHeartBeat,
+        .event_name = EVENT_NAME_HB_RESPONSE,
+        .handler = handleHeartBeat,
     },
     {
-        "__emit_code",
-        handleEmit,
+        .event_name = EVENT_NAME_EMIT_CODE,
+        .handler = handleEmit,
     },
     {
-        "__notify_status",
-        handleNotifyStatus,
+        .event_name = EVENT_NAME_NOTIFY_STATUS,
+        .handler = handleNotifyStatus,
+    },
+    {
+        .event_name = EVENT_NAME_REBOOT,
+        .handler = handleReboot,
+    },
+    {
+        .event_name = EVENT_NAME_RESET,
+        .handler = handleReset,
+    },
+    {
+        .event_name = EVENT_NAME_FIRMWARE_UPDATE,
+        .handler = handleFirmwareUpdate,
     }
 };
 
@@ -476,5 +513,165 @@ static int handleNotifyStatus(String product_key, String device_name, String con
     } else {
         INFOF("Deserialize failed\n");
     }
+    return 0;
+}
+
+static int handleReboot(String product_key, String device_name, String content) {
+    (void) content;
+    
+    // ignore reboot command during OTA upgrade
+    ota_status_t ota_status = getOTAStatus();
+    if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
+        INFOF("Ignoring reboot command during OTA upgrade (status = %d)\n", ota_status);
+        return -1;
+    }
+    
+    if (product_key.isEmpty() || device_name.isEmpty()) {
+        ERROR("Invalid product key or device name\n");
+        return -1;
+    }
+    INFOF("Received reboot command, product_key = %s, device_name = %s\n", product_key.c_str(), device_name.c_str());
+    if (product_key.equals(g_product_key) && device_name.equals(g_device_name)) {
+        wifiRestart();
+    }
+    return 0;
+}
+
+static int handleReset(String product_key, String device_name, String content) {
+    (void) content;
+    
+    // ignore reset command during OTA upgrade
+    ota_status_t ota_status = getOTAStatus();
+    if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
+        INFOF("Ignoring reset command during OTA upgrade (status = %d)\n", ota_status);
+        return -1;
+    }
+    
+    if (product_key.isEmpty() || device_name.isEmpty()) {
+        ERROR("Invalid product key or device name\n");
+        return -1;
+    }
+    INFOF("Received reset command, product_key = %s, device_name = %s\n", product_key.c_str(), device_name.c_str());
+    if (product_key.equals(g_product_key) && device_name.equals(g_device_name)) {
+        wifiReset();
+    }
+    return 0;
+}
+
+static int handleFirmwareUpdate(String product_key, String device_name, String content) {
+    // ignore firmware update command if already upgrading
+    ota_status_t ota_status = getOTAStatus();
+    if (ota_status == OTA_STATUS_DOWNLOADING || ota_status == OTA_STATUS_REBOOTING) {
+        INFOF("Ignoring firmware update command during OTA upgrade (status = %d)\n", ota_status);
+        return -1;
+    }
+    
+    if (product_key.isEmpty() || device_name.isEmpty()) {
+        ERROR("Invalid product key or device name\n");
+        return -1;
+    }
+
+    if (!product_key.equals(g_product_key) || !device_name.equals(g_device_name)) {
+        ERROR("Product key or device name mismatch\n");
+        return -1;
+    }
+
+    INFOF("Received firmware_update command, content = %s\n", content.c_str());
+
+    StaticJsonDocument<512> doc;
+    if (DeserializationError::Ok != deserializeJson(doc, content)) {
+        ERROR("Failed to parse firmware update content\n");
+        return -1;
+    }
+
+    String firmware_url = doc["downloadUrl"];
+    String target_version = doc["version"];
+    String name = doc["name"];
+
+    if (firmware_url.isEmpty()) {
+        ERROR("Download URL is empty\n");
+        return -1;
+    }
+
+    if (!name.equals("iris_kit")) {
+        ERRORF("Component name mismatch: expected 'iris_kit', got '%s'\n", name.c_str());
+
+        reportOTAStatus("Firmware Mismatch");
+
+        return -1;
+    }
+
+    char current_version_buf[32] = { 0 };
+    getIRISKitVersion(current_version_buf, sizeof(current_version_buf));
+    String current_version = String(current_version_buf);
+
+    int version_compare = compareVersions(target_version, current_version);
+    if (version_compare <= 0) {
+        INFOF("Target version %s is not greater than current version %s, skip upgrade\n",
+              target_version.c_str(), current_version.c_str());
+
+        reportOTAStatus("Incorrect Version");
+
+        return -1;
+    }
+
+    INFOF("Starting OTA upgrade: version = %s, name = %s, url = %s\n",
+          target_version.c_str(), name.c_str(), firmware_url.c_str());
+
+    return startOTAUpgrade(firmware_url, target_version);
+}
+
+static int compareVersions(const String& versionA, const String& versionB) {
+    if (versionA.isEmpty() || versionB.isEmpty()) {
+        return 0;
+    }
+
+    int sepA = versionA.indexOf("_r");
+    int sepB = versionB.indexOf("_r");
+
+    if (sepA == -1 || sepB == -1) {
+        return 0;
+    }
+
+    String verA = versionA.substring(0, sepA);
+    String verB = versionB.substring(0, sepB);
+
+    int dotA1 = verA.indexOf('.');
+    int dotA2 = verA.indexOf('.', dotA1 + 1);
+    int dotB1 = verB.indexOf('.');
+    int dotB2 = verB.indexOf('.', dotB1 + 1);
+
+    if (dotA1 == -1 || dotA2 == -1 || dotB1 == -1 || dotB2 == -1) {
+        return 0;
+    }
+
+    int majorA = verA.substring(0, dotA1).toInt();
+    int minorA = verA.substring(dotA1 + 1, dotA2).toInt();
+    int patchA = verA.substring(dotA2 + 1).toInt();
+
+    int majorB = verB.substring(0, dotB1).toInt();
+    int minorB = verB.substring(dotB1 + 1, dotB2).toInt();
+    int patchB = verB.substring(dotB2 + 1).toInt();
+
+    if (majorA != majorB) {
+        return majorA > majorB ? 1 : -1;
+    }
+    if (minorA != minorB) {
+        return minorA > minorB ? 1 : -1;
+    }
+    if (patchA != patchB) {
+        return patchA > patchB ? 1 : -1;
+    }
+
+    String relA = versionA.substring(sepA + 2);
+    String relB = versionB.substring(sepB + 2);
+
+    int releaseA = relA.toInt();
+    int releaseB = relB.toInt();
+
+    if (releaseA != releaseB) {
+        return releaseA > releaseB ? 1 : -1;
+    }
+
     return 0;
 }
