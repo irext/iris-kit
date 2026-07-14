@@ -27,18 +27,15 @@
 #include "defines.h"
 #include "global.h"
 #include "serials.h"
-#include "ir_drv_ctrl.h"
 
 #include "user_settings.h"
 
 
 #define FILE_GENERIC_CONFIG      "config"
-#define FILE_AC_STATUS           "ac_status"
-#define IRISKIT_SETTINGS         "iriskit_settings"
+#define IRIS_KIT_SETTINGS        "iriskit_settings"
 
 
 StaticJsonDocument<1024> ConfigData;
-StaticJsonDocument<1024> ACStatus;
 StaticJsonDocument<1024> IrisKitSettings;
 
 bool saveSettings() {
@@ -53,19 +50,10 @@ bool saveSettings() {
     }
     cache.close();
 
-    // AC status partial
-    cache = LittleFS.open(FILE_AC_STATUS, "w");
-    if (!cache || (serializeJson(ACStatus, cache) == 0)) {
-        ERRORF("ERROR: failed to save AC status file\n");
-        cache.close();
-        return false;
-    }
-    cache.close();
-
     // credential partial
-    cache = LittleFS.open(IRISKIT_SETTINGS, "w");
+    cache = LittleFS.open(IRIS_KIT_SETTINGS, "w");
     if (!cache || (serializeJson(IrisKitSettings, cache) == 0)) {
-        ERRORF("ERROR: failed to save credentials file\n");
+        ERRORF("ERROR: failed to save iriskit_settings file\n");
         cache.close();
         return false;
     }
@@ -103,29 +91,11 @@ bool loadSettings() {
         ERRORF("Config does not exist\n");
     }
 
-    // AC status partial
-    if (LittleFS.exists(FILE_AC_STATUS)) {
-        File cache = LittleFS.open(FILE_AC_STATUS, "r");
-        if (!cache) {
-            ERRORF("Failed to read AC status file\n");
-            return ret;
-        }
-        if (cache.size() > 0) {
-            DeserializationError error = deserializeJson(ACStatus, cache);
-            if (error) {
-                ERRORF("Failed to load AC status settings\n");
-                return ret;
-            }
-            INFOF("AC status loaded\n");
-        }
-        cache.close();
-    }
-
     // credential partial
-    if (LittleFS.exists(IRISKIT_SETTINGS)) {
-        File cache = LittleFS.open(IRISKIT_SETTINGS, "r");
+    if (LittleFS.exists(IRIS_KIT_SETTINGS)) {
+        File cache = LittleFS.open(IRIS_KIT_SETTINGS, "r");
         if (!cache) {
-            ERRORF("Failed to read acstatus file\n");
+            ERRORF("Failed to read iriskit_settings file\n");
             return ret;
         }
         if (cache.size() > 0) {
