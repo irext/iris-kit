@@ -71,6 +71,7 @@ typedef unsigned char uint8_t;
 #define LED_SEND_PIN                  (-1)
 #define LED_RECV_PIN                  (-1)
 #elif defined IRIS_KIT_GEEKLINK
+#define RESET_PIN                     (2)
 #define T_IR                          (14)
 #define R_IR                          (5)
 #define LED_SEND_PIN                  (12)
