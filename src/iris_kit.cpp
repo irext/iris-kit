@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2025 IRext Opensource Organization
+ * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Author: Strawmanbobi and Caffreyfans
  *
@@ -30,6 +30,7 @@
 
 #include "defines.h"
 #include "ir_drv_ctrl.h"
+#include "led_drv.h"
 #include "iot_hub.h"
 #include "http_client.h"
 #include "global.h"
@@ -92,13 +93,15 @@ void setup() {
     delay(SYSTEM_DELAY);
 
     Serial.clearWriteError();
-    Serial.print("\n");
-    Serial.print("██╗██████╗ ██╗███████╗\n");
-    Serial.print("██║██╔══██╗██║██╔════╝\n");
-    Serial.print("██║██████╔╝██║███████╗\n");
-    Serial.print("██║██╔══██╗██║╚════██║\n");
-    Serial.print("██║██║  ██║██║███████║\n");
-    Serial.print("╚═╝╚═╝  ╚═╝╚═╝╚══════╝\n");
+    Serial.println();
+    Serial.println(F("  _____  _____   _____   _____ "));
+    Serial.println(F(" |_   _||  __ \\ |_   _| / ____|"));
+    Serial.println(F("   | |  | |__) |  | |  | (___  "));
+    Serial.println(F("   | |  |  _  /   | |   \\___ \\ "));
+    Serial.println(F("  _| |_ | | \\ \\  _| |_  ____) |"));
+    Serial.println(F(" |_____||_|  \\_\\|_____||_____/ "));
+    Serial.println();
+    Serial.println();
     Serial.print("== IRIS Kit Powered by AliyunIoT ==\n");
 
     // try loading saved iriskit settings
@@ -208,6 +211,7 @@ void setup() {
         recv_pin = ir_receive_pin;
     }
     INFOF("IR pin config get : %d, %d\n", send_pin, recv_pin);
+    initLEDs();
     loadIRPin(send_pin, recv_pin);
 
     // prepare MQTT connection params

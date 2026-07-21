@@ -1,5 +1,5 @@
 /**
- *
+*
  * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,34 +21,17 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_SERIALS_H
-#define IRIS_KIT_SERIALS_H
+#ifndef IRIS_KIT_LED_DRV_H
+#define IRIS_KIT_LED_DRV_H
 
-#include <Arduino.h>
+void initLEDs();
 
-#include "defines.h"
+void setSendLED(bool on);
 
-// generic COM debug
+void setRecvLED(bool on);
 
-#define DEBUGLN(...) \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.println(__VA_ARGS__); } }
-#define DEBUGF(...) \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.printf(__VA_ARGS__); } }
-#define DEBUG(...)  \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.print(__VA_ARGS__); } }
+void blinkSendLED(int times = 3, int delay_ms = 100);
 
-#define INFOLN(...) \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.println(__VA_ARGS__); } }
-#define INFOF(...) \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.printf(__VA_ARGS__); } }
-#define INFO(...)  \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.print(__VA_ARGS__); } }
+void blinkRecvLED(int times = 3, int delay_ms = 100);
 
-#define ERRORLN(...) \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.println(__VA_ARGS__); } }
-#define ERRORF(...) \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.printf(__VA_ARGS__); } }
-#define ERROR(...)  \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.print(__VA_ARGS__); } }
-
-#endif // IRIS_KIT_SERIALS_H
+#endif // IRIS_KIT_LED_DRV_H

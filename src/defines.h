@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2025 IRext Opensource Organization
+ * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ typedef unsigned char uint8_t;
 
 /* ----------------- version defs ----------------- */
 #define FIRMWARE_VERSION              "1.5.3"
-#define VERSION_CODE                  (7)
+#define VERSION_CODE                  (9)
 
 /* ----------------- log settings ----------------- */
 #define BAUD_RATE                     (115200)
@@ -64,8 +64,17 @@ typedef unsigned char uint8_t;
 #define SAVE_DATA_INTERVALS           (300)
 
 /* ----------------- pin settings --------------- */
+#if defined IRIS_KIT_IREXT
 #define RESET_PIN                     (2)
 #define T_IR                          (4)
 #define R_IR                          (14)
+#define LED_SEND_PIN                  (-1)
+#define LED_RECV_PIN                  (-1)
+#elif defined IRIS_KIT_GEEKLINK
+#define T_IR                          (14)
+#define R_IR                          (5)
+#define LED_SEND_PIN                  (12)
+#define LED_RECV_PIN                  (13)
+#endif
 
 #endif  // _DEFINES_H

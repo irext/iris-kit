@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2025 IRext Opensource Organization
+ * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@
 #include "iris_client.h"
 #include "http_client.h"
 #include "utils.h"
+#include "led_drv.h"
 
 #include "ir_drv_ctrl.h"
 
@@ -70,9 +71,12 @@ bool sendIR(String file_name) {
         memset(data_buffer, 0x0, IR_SERIES_MAX);
         cache.readBytes((char *)data_buffer, cache.size());
         ir_recv->disableIRIn();
+        setSendLED(true);
         ir_send->sendRaw(data_buffer, length, 38);
+        setSendLED(false);
         free(data_buffer);
         cache.close();
+        blinkSendLED(2, 50);
         return true;
     }
     return false;
@@ -92,7 +96,10 @@ bool emitIR(String timing) {
         series[i] = (uint16_t) IR_END_CODE;
         ir_recv->disableIRIn();
         INFOF("IR send raw : %d\n", parts_num);
+        setSendLED(true);
         ir_send->sendRaw(series, parts_num + 1, 38);
+        setSendLED(false);
+        blinkSendLED(2, 50);
     }
     return true;
 }
@@ -139,6 +146,9 @@ void recvIR() {
         ir_recv->resume();
 
         DEBUGLN(g_recv_ir_code_str.c_str());
+
+        blinkRecvLED(3, 50);
+        setRecvLED(true);
 
 #if defined STORE_RECEIVED_IR_DATA
         saveReceived(g_recv_ir_code_str);
@@ -240,8 +250,10 @@ void loadIRPin(uint8_t send_pin, uint8_t recv_pin) {
 
 void disableIRIn() {
     ir_recv->disableIRIn();
+    setRecvLED(false);
 }
 
 void enableIRIn() {
     ir_recv->enableIRIn();
+    setRecvLED(true);
 }

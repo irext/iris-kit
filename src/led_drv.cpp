@@ -1,5 +1,5 @@
 /**
- *
+*
  * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,34 +21,56 @@
  * SOFTWARE.
  */
 
-#ifndef IRIS_KIT_SERIALS_H
-#define IRIS_KIT_SERIALS_H
-
 #include <Arduino.h>
-
+#include "led_drv.h"
 #include "defines.h"
 
-// generic COM debug
 
-#define DEBUGLN(...) \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.println(__VA_ARGS__); } }
-#define DEBUGF(...) \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.printf(__VA_ARGS__); } }
-#define DEBUG(...)  \
-    { if (LOG_DEBUG) { Serial.printf("DEBUG: "); Serial.print(__VA_ARGS__); } }
+// public function definitions
+void initLEDs() {
+    if (-1 == LED_SEND_PIN || -1 == LED_RECV_PIN) {
+        return;
+    }
+    pinMode(LED_SEND_PIN, OUTPUT);
+    pinMode(LED_RECV_PIN, OUTPUT);
+    digitalWrite(LED_SEND_PIN, HIGH);
+    digitalWrite(LED_RECV_PIN, HIGH);
+}
 
-#define INFOLN(...) \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.println(__VA_ARGS__); } }
-#define INFOF(...) \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.printf(__VA_ARGS__); } }
-#define INFO(...)  \
-    { if (LOG_INFO) { Serial.printf("INFO: "); Serial.print(__VA_ARGS__); } }
+void setSendLED(bool on) {
+    if (-1 == LED_SEND_PIN) {
+        return;
+    }
+    digitalWrite(LED_SEND_PIN, on ? LOW : HIGH);
+}
 
-#define ERRORLN(...) \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.println(__VA_ARGS__); } }
-#define ERRORF(...) \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.printf(__VA_ARGS__); } }
-#define ERROR(...)  \
-    { if (LOG_ERROR) { Serial.printf("ERROR: "); Serial.print(__VA_ARGS__); } }
+void setRecvLED(bool on) {
+    if (-1 == LED_RECV_PIN) {
+        return;
+    }
+    digitalWrite(LED_RECV_PIN, on ? LOW : HIGH);
+}
 
-#endif // IRIS_KIT_SERIALS_H
+void blinkSendLED(int times, int delay_ms) {
+    if (-1 == LED_SEND_PIN) {
+        return;
+    }
+    for (int i = 0; i < times; i++) {
+        digitalWrite(LED_SEND_PIN, LOW);
+        delay(delay_ms);
+        digitalWrite(LED_SEND_PIN, HIGH);
+        delay(delay_ms);
+    }
+}
+
+void blinkRecvLED(int times, int delay_ms) {
+    if (-1 == LED_RECV_PIN) {
+        return;
+    }
+    for (int i = 0; i < times; i++) {
+        digitalWrite(LED_RECV_PIN, LOW);
+        delay(delay_ms);
+        digitalWrite(LED_RECV_PIN, HIGH);
+        delay(delay_ms);
+    }
+}

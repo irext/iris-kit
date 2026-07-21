@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2020-2025 IRext Opensource Organization
+ * Copyright (c) 2020-2026 IRext Opensource Organization
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -601,18 +601,20 @@ static int handleFirmwareUpdate(String product_key, String device_name, String c
         return -1;
     }
 
-    char current_version_buf[32] = { 0 };
-    getIRISKitVersion(current_version_buf, sizeof(current_version_buf));
-    String current_version = String(current_version_buf);
+    if (!target_version.equals("custom")) {
+        char current_version_buf[32] = { 0 };
+        getIRISKitVersion(current_version_buf, sizeof(current_version_buf));
+        String current_version = String(current_version_buf);
 
-    int version_compare = compareVersions(target_version, current_version);
-    if (version_compare <= 0) {
-        INFOF("Target version %s is not greater than current version %s, skip upgrade\n",
-              target_version.c_str(), current_version.c_str());
+        int version_compare = compareVersions(target_version, current_version);
+        if (version_compare <= 0) {
+            INFOF("Target version %s is not greater than current version %s, skip upgrade\n",
+                  target_version.c_str(), current_version.c_str());
 
-        reportOTAStatus("Incorrect Version");
+            reportOTAStatus("Incorrect Version");
 
-        return -1;
+            return -1;
+        }
     }
 
     INFOF("Starting OTA upgrade: version = %s, name = %s, url = %s\n",
