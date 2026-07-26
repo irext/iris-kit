@@ -593,8 +593,10 @@ static int handleFirmwareUpdate(String product_key, String device_name, String c
         return -1;
     }
 
-    if (!name.equals("iris_kit")) {
-        ERRORF("Component name mismatch: expected 'iris_kit', got '%s'\n", name.c_str());
+    // validate firmware name based on device class
+    String expected_name = (DEVICE_CLASS == 0) ? "iris_kit_irext" : "iris_kit_geeklink";
+    if (!name.equals(expected_name)) {
+        ERRORF("Component name mismatch: expected '%s', got '%s'\n", expected_name.c_str(), name.c_str());
 
         reportOTAStatus("Firmware Mismatch");
 
