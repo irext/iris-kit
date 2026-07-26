@@ -36,7 +36,7 @@ show_menu() {
     echo "=========================================="
     echo ""
     echo "Hardware Versions:"
-    echo "  [1] IRIS_KIT_IREXT      -> iris_kit_latest.bin"
+    echo "  [1] IRIS_KIT_IREXT      -> iris_kit_irext_latest.bin"
     echo "  [2] IRIS_KIT_GEEKLINK   -> iris_kit_geeklink_latest.bin"
     echo ""
     echo "Build Commands:"

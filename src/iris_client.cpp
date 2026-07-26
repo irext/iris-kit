@@ -133,7 +133,7 @@ int getIRISKitVersion(char *buffer, int buffer_size) {
         return -1;
     }
     memset(buffer, 0, buffer_size);
-    snprintf(buffer, buffer_size - 1, "%s_r%d", FIRMWARE_VERSION, VERSION_CODE);
+    snprintf(buffer, buffer_size - 1, "%s_r%d_c%d", FIRMWARE_VERSION, VERSION_CODE, DEVICE_CLASS);
     return strlen(buffer);
 }
 
@@ -665,11 +665,19 @@ static int compareVersions(const String& versionA, const String& versionB) {
         return patchA > patchB ? 1 : -1;
     }
 
+    // parse revision part (after "_r" and before optional "_c")
     String relA = versionA.substring(sepA + 2);
     String relB = versionB.substring(sepB + 2);
 
-    int releaseA = relA.toInt();
-    int releaseB = relB.toInt();
+    // check if there is device class suffix "_c"
+    int cSepA = relA.indexOf("_c");
+    int cSepB = relB.indexOf("_c");
+
+    String revStrA = (cSepA != -1) ? relA.substring(0, cSepA) : relA;
+    String revStrB = (cSepB != -1) ? relB.substring(0, cSepB) : relB;
+
+    int releaseA = revStrA.toInt();
+    int releaseB = revStrB.toInt();
 
     if (releaseA != releaseB) {
         return releaseA > releaseB ? 1 : -1;

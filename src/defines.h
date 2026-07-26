@@ -65,12 +65,14 @@ typedef unsigned char uint8_t;
 
 /* ----------------- pin settings --------------- */
 #if defined IRIS_KIT_IREXT
+#define DEVICE_CLASS                  (0)
 #define RESET_PIN                     (2)
 #define T_IR                          (4)
 #define R_IR                          (14)
 #define LED_SEND_PIN                  (-1)
 #define LED_RECV_PIN                  (-1)
 #elif defined IRIS_KIT_GEEKLINK
+#define DEVICE_CLASS                  (1)
 #define RESET_PIN                     (2)
 #define T_IR                          (14)
 #define R_IR                          (5)
