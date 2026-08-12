@@ -32,7 +32,7 @@ typedef unsigned char uint8_t;
 
 /* ----------------- version defs ----------------- */
 #define FIRMWARE_VERSION              "1.5.3"
-#define VERSION_CODE                  (9)
+#define VERSION_CODE                  (10)
 
 /* ----------------- log settings ----------------- */
 #define BAUD_RATE                     (115200)
