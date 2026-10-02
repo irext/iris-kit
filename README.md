@@ -13,9 +13,11 @@ To flash the official firmware, download the binary file from <a href="https://s
 
 Choose ESP8285 (ESP-01M) and select the firmware bin to flash to your COM port.
 
-<img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/flash_tool_1.png">
+<img width="219" height="211" alt="image" src="https://github.com/user-attachments/assets/ecb63d65-2bf7-40ce-807f-b26ee51c5077" />
+
 <br>
-<img src="https://irext-static.oss-cn-hangzhou.aliyuncs.com/flash_tool_2.png">
+
+<img width="424" height="676" alt="image" src="https://github.com/user-attachments/assets/7400d376-9660-49b7-9b79-4d84901c8624" />
 
 ## How to use
 Please refer to <a href="https://site.irext.net/iris/#collector">IRIS-Kit</a> document. 
